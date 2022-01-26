@@ -3,6 +3,8 @@ package io.dev00.fitnesstracker.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -15,16 +17,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
-import io.dev00.fitnesstracker.components.InputField
+import io.dev00.fitnesstracker.components.OutlinedIconInputField
 
 @ExperimentalComposeUiApi
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, top = 30.dp, end = 20.dp)
+            .padding(start = 5.dp, end = 5.dp)
+
     ) {
         Text(
             text = "Hello",
@@ -81,7 +85,7 @@ fun BottomCard() {
     val steps = remember {
         mutableStateOf("")
     }
-    val isValid = steps.value.isNotEmpty() && steps.value.isDigitsOnly()
+    val isValid = steps.value.trim().isNotEmpty() && steps.value.isDigitsOnly()
     var parsedValue = 0
     if (isValid) {
         parsedValue = steps.value.toInt()
@@ -106,10 +110,11 @@ fun BottomCard() {
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                InputField(
+                OutlinedIconInputField(
                     modifier = Modifier.fillMaxWidth(),
                     valueState = steps,
                     label = "Steps",
+                    icon = Icons.Default.DirectionsWalk,
                     enabled = true,
                     isSingleLine = true,
                     onAction = KeyboardActions {

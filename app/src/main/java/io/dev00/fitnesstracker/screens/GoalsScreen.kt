@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
@@ -18,13 +19,15 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
+import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Goal
-
 @Composable
-fun GoalsScreen(modifier: Modifier = Modifier) {
+fun GoalsScreen(modifier: Modifier = Modifier, navController: NavController) {
     val goalList = listOf(
         Goal("Goal Name 1", 1, true),
         Goal("Goal Name 2", 2),
@@ -33,23 +36,24 @@ fun GoalsScreen(modifier: Modifier = Modifier) {
         Goal("Goal Name 5", 5),
         Goal("Goal Name 6", 6),
         Goal("Goal Name 7", 7),
-        Goal("Goal Name 8", 8),
-        Goal("Goal Name 8", 9),
-        Goal("Goal Name 8", 10),
-        Goal("Goal Name 8", 11),
+        Goal("Goal Name 9", 8),
+        Goal("Goal Name 10", 9),
+        Goal("Goal Name 11", 10),
+        Goal("Goal Name 12", 11),
     )
-    val activeGoal = goalList.filter { it.isActive }[0]
+    val activeGoal = goalList.filter { it.isActive }
     val allGoals = goalList.filter { !it.isActive }
     Surface(
         modifier = modifier
-            .padding(start = 20.dp, top = 20.dp, end = 20.dp)
             .fillMaxSize()
     ) {
         Column {
 //            TopAppBar(
 //                backgroundColor = Color.Transparent,
 //                content = {
-//                    FilledBackButton() {
+//                    FilledCircularIconButton(
+//                        icon = Icons.Default.ArrowBack,
+//                    ) {
 //                        //Todo: go back
 //                    }
 //                },
@@ -79,16 +83,20 @@ fun GoalsScreen(modifier: Modifier = Modifier) {
                                 fontSize = MaterialTheme.typography.h5.fontSize,
                                 fontWeight = FontWeight(300)
                             )
-                            GoalCard(activeGoal, isActive = true)
+                            if (activeGoal.isNotEmpty()) {
+                                GoalCard(activeGoal[0], isActive = activeGoal.isNotEmpty())
+                            } else {
+                                Text(text = "No Active Goal")
+                            }
                             Text(
-                                modifier = Modifier.padding(bottom = 10.dp),
+                                modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
                                 text = "All Goal",
                                 fontSize = MaterialTheme.typography.h5.fontSize,
                                 fontWeight = FontWeight(300)
                             )
                             LazyColumn(modifier = Modifier.padding(bottom = 20.dp)) {
                                 items(allGoals) { goal ->
-                                    GoalCard(goal)
+                                    GoalCard(goal = goal, hasActive = activeGoal.isNotEmpty())
                                 }
                             }
                         }
@@ -101,11 +109,10 @@ fun GoalsScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun GoalCard(goal: Goal, isActive: Boolean = false, hasActive: Boolean = false) {
-    BackgroundCard(modifier = Modifier.padding(bottom = 5.dp), elevation = 0) {
+    BackgroundCard(modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp), elevation = 1) {
         Box(
-            modifier = Modifier.background(
-                shape = RoundedCornerShape(15.dp),
-                color = Color.LightGray
+            modifier = Modifier.background(shape = RoundedCornerShape(15.dp),
+                color = Color.Transparent
             )
         ) {
             Row(
