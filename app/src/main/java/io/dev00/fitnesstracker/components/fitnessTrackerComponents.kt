@@ -66,7 +66,7 @@ fun FilledCircularIconButton(
 }
 
 @Composable
-fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController) {
+fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController,activeScreen:MutableState<String>) {
     val darkTheme: Boolean = isSystemInDarkTheme()
     var background = Color.Transparent
     var homeIconTint: Color
@@ -76,33 +76,30 @@ fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController) {
     if (!darkTheme) {
         background = Color(0xFFE3E3E3)
     }
-    var activeScreen by remember {
-        mutableStateOf(FitnessTrackerScreens.HomeScreen.name)
-    }
     if (!darkTheme) {
         homeIconTint = Color.Black
-        if (activeScreen == FitnessTrackerScreens.HomeScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.HomeScreen.name) {
             homeIconTint = Color.Gray
         }
         goalIconTint = Color.Black
-        if (activeScreen == FitnessTrackerScreens.GoalsScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.GoalsScreen.name) {
             goalIconTint = Color.Gray
         }
         historyIconTint = Color.Black
-        if (activeScreen == FitnessTrackerScreens.HistoryScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.HistoryScreen.name) {
             historyIconTint = Color.Gray
         }
     } else {
         homeIconTint = Color.Gray
-        if (activeScreen == FitnessTrackerScreens.HomeScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.HomeScreen.name) {
             homeIconTint = Color.Black
         }
         goalIconTint = Color.Gray
-        if (activeScreen == FitnessTrackerScreens.GoalsScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.GoalsScreen.name) {
             goalIconTint = Color.Black
         }
         historyIconTint = Color.Gray
-        if (activeScreen == FitnessTrackerScreens.HistoryScreen.name) {
+        if (activeScreen.value == FitnessTrackerScreens.HistoryScreen.name) {
             historyIconTint = Color.Black
         }
     }
@@ -126,9 +123,9 @@ fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController) {
                     imageVector = Icons.Filled.Home,
                     contentDescription = "Home",
                     modifier = Modifier.clickable {
-                        if (activeScreen != FitnessTrackerScreens.HomeScreen.name) {
-                            activeScreen = FitnessTrackerScreens.HomeScreen.name
+                        if (activeScreen.value != FitnessTrackerScreens.HomeScreen.name) {
                             navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
+                            activeScreen.value = FitnessTrackerScreens.HomeScreen.name
                         }
                     },
                     tint = homeIconTint
@@ -137,9 +134,9 @@ fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController) {
                     imageVector = Icons.Filled.Flag,
                     contentDescription = "Goals",
                     modifier = Modifier.clickable {
-                        if (activeScreen != FitnessTrackerScreens.GoalsScreen.name) {
-                            activeScreen = FitnessTrackerScreens.GoalsScreen.name
+                        if (activeScreen.value != FitnessTrackerScreens.GoalsScreen.name) {
                             navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                            activeScreen.value = FitnessTrackerScreens.GoalsScreen.name
                         }
                     },
                     tint = goalIconTint
@@ -148,9 +145,9 @@ fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController) {
                     imageVector = Icons.Filled.History,
                     contentDescription = "History",
                     modifier = Modifier.clickable {
-                        if (activeScreen != FitnessTrackerScreens.HistoryScreen.name) {
-                            activeScreen = FitnessTrackerScreens.HistoryScreen.name
+                        if (activeScreen.value != FitnessTrackerScreens.HistoryScreen.name) {
                             navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
+                            activeScreen.value = FitnessTrackerScreens.HistoryScreen.name
                         }
                     },
                     tint = historyIconTint

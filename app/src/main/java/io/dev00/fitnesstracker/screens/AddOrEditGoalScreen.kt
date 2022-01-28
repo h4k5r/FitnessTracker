@@ -17,18 +17,26 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.CheckBoxWithText
 import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.components.OutlinedInputField
+import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 
 @ExperimentalComposeUiApi
-@Preview
 @Composable
-fun AddOrEditGoalScreen(modifier: Modifier = Modifier, isAdd: Boolean = true, goalId: String = "") {
+fun AddOrEditGoalScreen(
+    modifier: Modifier = Modifier,
+    isAdd: Boolean = true,
+    goal: Goal = Goal(),
+    navController: NavController,
+    goalsViewModel: GoalsViewModel
+) {
     var isInitial by remember {
         mutableStateOf(true)
     }
@@ -51,8 +59,8 @@ fun AddOrEditGoalScreen(modifier: Modifier = Modifier, isAdd: Boolean = true, go
         //fetch data from database
         isInitial = false
         isbuttonEnabled = false
-        goalName.value = "Test Goal"
-        goalSteps.value = "100"
+        goalName.value = goal.goalName
+        goalSteps.value = goal.steps.toString()
     }
 
     var screenHeading: String
@@ -65,6 +73,15 @@ fun AddOrEditGoalScreen(modifier: Modifier = Modifier, isAdd: Boolean = true, go
         buttonText = "Add"
         buttonAction = {
             //Todo Create Goal Action
+            if (isNamevalid && isStepsValid) {
+                goalsViewModel.addGoal(
+                    Goal(
+                        goalName = goalName.value,
+                        steps = goalSteps.value.toInt()
+                    )
+                )
+                navController.popBackStack()
+            }
         }
     } else {
         screenHeading = "Edit Goal"
@@ -84,7 +101,7 @@ fun AddOrEditGoalScreen(modifier: Modifier = Modifier, isAdd: Boolean = true, go
                         icon = Icons.Default.ArrowBack,
                         backgroundColor = Color.Black
                     ) {
-                        //Todo: go back
+                        navController.popBackStack()
                     }
                 },
                 elevation = 0.dp
