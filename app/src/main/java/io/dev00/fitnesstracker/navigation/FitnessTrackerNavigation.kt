@@ -11,15 +11,18 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import io.dev00.fitnesstracker.components.BottomNavBar
 import io.dev00.fitnesstracker.screens.AddOrEditGoalScreen
 import io.dev00.fitnesstracker.screens.GoalsScreen
 import io.dev00.fitnesstracker.screens.HistoryScreen
 import io.dev00.fitnesstracker.screens.HomeScreen
 import io.dev00.fitnesstracker.ui.theme.FitnessTrackerTheme
+import io.dev00.fitnesstracker.viewModel.EditGoalViewModel
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
 import io.dev00.fitnesstracker.viewModel.HomeViewModel
@@ -27,7 +30,7 @@ import io.dev00.fitnesstracker.viewModel.HomeViewModel
 @ExperimentalComposeUiApi
 @Composable
 fun FitnessTrackerNavigation() {
-    val navController = rememberNavController();
+    val navController = rememberNavController()
     val activeScreen = remember {
         mutableStateOf(FitnessTrackerScreens.HomeScreen.name)
     }
@@ -36,6 +39,7 @@ fun FitnessTrackerNavigation() {
             val goalsViewModel: GoalsViewModel = viewModel()
             val homeViewModel: HomeViewModel = viewModel()
             val historyViewModel:HistoryViewModel = viewModel()
+            val editGoalViewModel:EditGoalViewModel = viewModel()
             Scaffold(
                 modifier = Modifier
                     .fillMaxSize()
@@ -77,8 +81,21 @@ fun FitnessTrackerNavigation() {
                             modifier = Modifier.padding(padding),
                             isAdd = true,
                             navController = navController,
-                            goalsViewModel = goalsViewModel
+                            goalsViewModel = goalsViewModel,
+                            editGoalViewModel = editGoalViewModel
                         )
+                    }
+                    composable(FitnessTrackerScreens.EditGoalScreen.name+"/{goalId}", arguments = listOf(
+                        navArgument(name = "goalId") {type = NavType.StringType})) {
+                        AddOrEditGoalScreen(
+                            modifier = Modifier.padding(padding),
+                            isAdd = false,
+                            navController = navController,
+                            goalsViewModel = goalsViewModel,
+                            editGoalViewModel = editGoalViewModel,
+                            goalId = it.arguments?.getString("goalId").toString().toInt()
+                        )
+//                        DetailsScreen(navController = navController, id = it.arguments?.getString("movieId").toString() )
                     }
                 }
             }

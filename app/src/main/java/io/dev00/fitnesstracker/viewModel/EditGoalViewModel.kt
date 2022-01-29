@@ -14,25 +14,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-
 @HiltViewModel
-class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerRepository) :
+class EditGoalViewModel @Inject constructor(private val repository: FitnessTrackerRepository) :
     ViewModel() {
-    private var _activeGoal = MutableStateFlow<List<Goal>>(emptyList())
     private var _inactiveGoalsList = MutableStateFlow<List<Goal>>(emptyList())
-
-    var activeGoal = _activeGoal.asStateFlow()
     var inactiveGoals = _inactiveGoalsList.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
-            repository.getActiveGoal().distinctUntilChanged().collect {
-                if (it.isNullOrEmpty()) {
-                    Log.d("TAG", "No Active Goal")
-                }
-                _activeGoal.value = it
-            }
-        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.getInactiveGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
@@ -41,32 +29,17 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
                 _inactiveGoalsList.value = it
             }
         }
-
     }
 
-    fun addGoal(goal: Goal) {
+    fun getGoalById(id:Int):Goal {
+        return inactiveGoals.value.filter(predicate = {
+            it.id == id
+        })[0]
+    }
+    fun insertGoal(goal: Goal) {
         viewModelScope.launch {
             repository.insertGoal(goal = goal)
         }
     }
 
-    fun deleteGoal(goal: Goal) {
-        viewModelScope.launch {
-            repository.deleteGoal(goal = goal)
-        }
-    }
-
-    fun activateGoal(goal: Goal) {
-        viewModelScope.launch {
-            goal.isActive = true
-            repository.updateGoal(goal = goal)
-        }
-    }
-
-    fun deactivateGoal(goal: Goal) {
-        viewModelScope.launch {
-            goal.isActive = false
-            repository.updateGoal(goal = goal)
-        }
-    }
 }

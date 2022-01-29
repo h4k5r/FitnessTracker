@@ -1,5 +1,6 @@
 package io.dev00.fitnesstracker.screens
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import io.dev00.fitnesstracker.components.CheckBoxWithText
 import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.components.OutlinedInputField
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.viewModel.EditGoalViewModel
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 
 @ExperimentalComposeUiApi
@@ -33,9 +35,10 @@ import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 fun AddOrEditGoalScreen(
     modifier: Modifier = Modifier,
     isAdd: Boolean = true,
-    goal: Goal = Goal(),
+    goalId: Int = 0,
     navController: NavController,
-    goalsViewModel: GoalsViewModel
+    goalsViewModel: GoalsViewModel,
+    editGoalViewModel: EditGoalViewModel,
 ) {
     var isInitial by remember {
         mutableStateOf(true)
@@ -50,18 +53,21 @@ fun AddOrEditGoalScreen(
         mutableStateOf("")
     }
     val isStepsValid = goalSteps.value.trim().isNotEmpty() && goalSteps.value.isDigitsOnly()
-
-    var isEditable = remember {
-        mutableStateOf(false)
-    }
     var isbuttonEnabled = isNamevalid && isStepsValid
+
+
+    var toBeSavedGoal:Goal = Goal()
+    if (!isAdd) {
+        toBeSavedGoal = editGoalViewModel.getGoalById(id = goalId)
+    }
     if (isInitial && !isAdd) {
-        //fetch data from database
+
         isInitial = false
         isbuttonEnabled = false
-        goalName.value = goal.goalName
-        goalSteps.value = goal.steps.toString()
+        goalName.value = toBeSavedGoal.goalName
+        goalSteps.value = toBeSavedGoal.steps.toString()
     }
+
 
     var screenHeading: String
 
@@ -87,7 +93,12 @@ fun AddOrEditGoalScreen(
         screenHeading = "Edit Goal"
         buttonText = "Save"
         buttonAction = {
-            //Todo Save Goal Action
+            if(isNamevalid && isStepsValid) {
+                toBeSavedGoal.goalName = goalName.value
+                toBeSavedGoal.steps = goalSteps.value.toInt()
+                editGoalViewModel.insertGoal(toBeSavedGoal)
+                navController.popBackStack()
+            }
         }
     }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -151,13 +162,6 @@ fun AddOrEditGoalScreen(
                             keyboardController?.hide()
                         }
                     )
-                    if (isAdd) {
-                        CheckBoxWithText(
-                            modifier = Modifier.padding(bottom = 20.dp),
-                            checkedState = isEditable,
-                            text = "Editable"
-                        )
-                    }
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = buttonAction,

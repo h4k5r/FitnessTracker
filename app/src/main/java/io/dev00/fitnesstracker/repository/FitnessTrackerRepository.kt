@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 
 class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO: FitnessTrackerDAO) {
-    suspend fun addGoal(goal: Goal) {
+    suspend fun insertGoal(goal: Goal) {
         fitnessTrackerDAO.insertGoal(goal = goal)
     }
 
@@ -21,7 +21,7 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
         fitnessTrackerDAO.deleteGoal(goal = goal)
     }
 
-    suspend fun deleteAllGoals() = fitnessTrackerDAO.deleteAllGoals();
+    suspend fun deleteAllGoals() = fitnessTrackerDAO.deleteAllGoals()
 
     fun getAllGoals(): Flow<List<Goal>> =
         fitnessTrackerDAO.getGoals().flowOn(Dispatchers.IO).conflate()

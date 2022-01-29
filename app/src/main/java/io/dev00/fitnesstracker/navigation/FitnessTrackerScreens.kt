@@ -4,5 +4,6 @@ enum class FitnessTrackerScreens {
     HomeScreen,
     GoalsScreen,
     HistoryScreen,
-    AddGoalScreen
+    AddGoalScreen,
+    EditGoalScreen
 }

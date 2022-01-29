@@ -107,6 +107,7 @@ fun GoalsScreen(
                                             navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                         },
                                         onEditClick = {
+                                            navController.navigate(route = FitnessTrackerScreens.EditGoalScreen.name + "/${goal.id}")
                                         },
                                         onActivateClick = onActivateClick
                                     )

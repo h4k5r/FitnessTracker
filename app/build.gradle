@@ -74,8 +74,6 @@ dependencies {
     //ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0"
 
-    //Livedata
-    implementation 'androidx.compose.runtime:runtime-livedata:1.2.0-alpha02'
 
 
     //Hilt-Dagger
