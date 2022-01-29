@@ -34,11 +34,13 @@ fun GoalsScreen(
     navController: NavController,
     goalsViewModel: GoalsViewModel,
 ) {
-    val goalList = remember {
-        goalsViewModel.goalsList.value
+    val activeGoal = remember {
+        goalsViewModel.activeGoal.value
     }
-    val activeGoal = goalList.filter { it.isActive }
-    val allGoals = goalList.filter { !it.isActive }
+
+    val inactiveGoals = remember {
+        goalsViewModel.inactiveGoals.value
+    }
     Surface(
         modifier = modifier
             .fillMaxSize()
@@ -82,12 +84,12 @@ fun GoalsScreen(
                             }
                             Text(
                                 modifier = Modifier.padding(top = 10.dp, bottom = 10.dp),
-                                text = "All Goal",
+                                text = "All Goals",
                                 fontSize = MaterialTheme.typography.h5.fontSize,
                                 fontWeight = FontWeight(300)
                             )
                             LazyColumn(modifier = Modifier.padding(bottom = 20.dp)) {
-                                items(allGoals) { goal ->
+                                items(inactiveGoals) { goal ->
                                     var onActivateClick = {}
                                     if (activeGoal.isEmpty()) {
                                         onActivateClick = {

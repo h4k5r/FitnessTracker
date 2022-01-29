@@ -19,17 +19,27 @@ import javax.inject.Inject
 @HiltViewModel
 class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerRepository) :
     ViewModel() {
-    private var _goalsList = MutableStateFlow<List<Goal>>(emptyList())
+    private var _activeGoal = MutableStateFlow<List<Goal>>(emptyList())
+    private var _inactiveGoalsList = MutableStateFlow<List<Goal>>(emptyList())
 
-    var goalsList = _goalsList.asStateFlow()
+    var activeGoal = _activeGoal.asStateFlow()
+    var inactiveGoals = _inactiveGoalsList.asStateFlow()
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getAllGoals().distinctUntilChanged().collect {
+            repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
-                    Log.d("TAG", "Repository is empty")
+                    Log.d("TAG", "No Active Goal")
                 }
-                _goalsList.value = it
+                _activeGoal.value = it
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getInactiveGoals().distinctUntilChanged().collect {
+                if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Inactive Goals")
+                }
+                _inactiveGoalsList.value = it
             }
         }
 

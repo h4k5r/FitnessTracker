@@ -11,8 +11,10 @@ data class Goal(
 
     @ColumnInfo(name = "goal_name")
     var goalName: String,
+
     @ColumnInfo(name = "goal_steps")
     var steps:Int,
+
     @ColumnInfo(name = "is_active")
     var isActive:Boolean = false
 ) {

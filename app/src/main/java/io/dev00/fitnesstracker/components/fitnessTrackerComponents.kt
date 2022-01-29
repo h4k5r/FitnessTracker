@@ -1,6 +1,9 @@
 package io.dev00.fitnesstracker.components
 
+import android.app.DatePickerDialog
+import android.content.Context
 import android.util.Log
+import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -19,12 +22,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
+import java.util.*
 
 @Preview
 @Composable
@@ -239,4 +244,22 @@ fun CheckBoxWithText(modifier: Modifier = Modifier,checkedState:MutableState<Boo
             checkedState.value = it
         } )
     }
+}
+
+
+fun configuredDatePickerDialog(context:Context, onDatePicked:(String) -> Unit):DatePickerDialog {
+    val year: Int
+    val month: Int
+    val day: Int
+    val calendar = Calendar.getInstance()
+    year = calendar.get(Calendar.YEAR)
+    month = calendar.get(Calendar.MONTH)
+    day = calendar.get(Calendar.DAY_OF_MONTH)
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _: DatePicker, year: Int, month: Int, day: Int ->
+            onDatePicked("${day}/${month+1}/${year}")
+        }, year, month, day
+    )
+    return  datePickerDialog
 }

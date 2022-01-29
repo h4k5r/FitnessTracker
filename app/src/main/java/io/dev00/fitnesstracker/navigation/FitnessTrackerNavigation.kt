@@ -21,6 +21,8 @@ import io.dev00.fitnesstracker.screens.HistoryScreen
 import io.dev00.fitnesstracker.screens.HomeScreen
 import io.dev00.fitnesstracker.ui.theme.FitnessTrackerTheme
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
+import io.dev00.fitnesstracker.viewModel.HistoryViewModel
+import io.dev00.fitnesstracker.viewModel.HomeViewModel
 
 @ExperimentalComposeUiApi
 @Composable
@@ -32,7 +34,8 @@ fun FitnessTrackerNavigation() {
     FitnessTrackerTheme {
         Surface(color = MaterialTheme.colors.background) {
             val goalsViewModel: GoalsViewModel = viewModel()
-
+            val homeViewModel: HomeViewModel = viewModel()
+            val historyViewModel:HistoryViewModel = viewModel()
             Scaffold(
                 modifier = Modifier
                     .fillMaxSize()
@@ -49,7 +52,8 @@ fun FitnessTrackerNavigation() {
                         activeScreen.value = FitnessTrackerScreens.HomeScreen.name
                         HomeScreen(
                             modifier = Modifier.padding(padding),
-                            navController = navController
+                            navController = navController,
+                            homeViewModel = homeViewModel
                         )
                     }
                     composable(route = FitnessTrackerScreens.GoalsScreen.name) {
@@ -64,7 +68,8 @@ fun FitnessTrackerNavigation() {
                         activeScreen.value = FitnessTrackerScreens.HistoryScreen.name
                         HistoryScreen(
                             modifier = Modifier.padding(padding),
-                            navController = navController
+                            navController = navController,
+                            historyViewModel = historyViewModel
                         )
                     }
                     composable(route = FitnessTrackerScreens.AddGoalScreen.name) {
