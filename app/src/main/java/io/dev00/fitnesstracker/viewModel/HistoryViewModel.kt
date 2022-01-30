@@ -24,6 +24,7 @@ class HistoryViewModel @Inject constructor(private val repository: FitnessTracke
 
     private var dateModel = mutableStateOf("")
     init {
+        dateModel.value = fetchCurrentDate()
         viewModelScope.launch(Dispatchers.IO) {
             repository.getStepByDate(date = fetchCurrentDate())
                 .distinctUntilChanged()

@@ -28,9 +28,7 @@ fun HistoryScreen(
     historyViewModel: HistoryViewModel
 ) {
     val context = LocalContext.current
-    var date by remember {
-        mutableStateOf(fetchCurrentDate())
-    }
+    var date = historyViewModel.getDate()
     var steps = historyViewModel.selectedDateSteps.collectAsState().value[0]
     Column(
         modifier = modifier
