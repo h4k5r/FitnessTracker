@@ -1,6 +1,5 @@
 package io.dev00.fitnesstracker.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,15 +15,12 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Steps
-import io.dev00.fitnesstracker.navigation.ClearModalConfig
 import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
 
@@ -33,7 +29,6 @@ fun HistoryScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     historyViewModel: HistoryViewModel,
-    ModalConfig:ModalConfiguration
 ) {
     var selectedMonth by remember {
         mutableStateOf(historyViewModel.getMonthAndYear().split("/")[0])
@@ -47,7 +42,8 @@ fun HistoryScreen(
     var selectYearDropDown by remember {
         mutableStateOf(false)
     }
-    var steps = historyViewModel.selectedMonthSteps.collectAsState().value.sortedBy { it.day.toInt() }
+    var steps =
+        historyViewModel.selectedMonthSteps.collectAsState().value.sortedBy { it.day.toInt() }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -132,16 +128,18 @@ fun HistoryScreen(
         LazyColumn(modifier = Modifier.padding(top = 20.dp)) {
             items(steps) {
                 StepHistoryItem(it, onDeleteClick = {
-                    ModalConfig.show.value = true
-                    ModalConfig.title.value = "Delete History"
-                    ModalConfig.content.value = "Do you want do delete data on ${it.day}/${it.month}/${it.year}?"
-                    ModalConfig.onYesClickHandler.value = {
-                        historyViewModel.deleteSteps(it)
-                        ClearModalConfig(ModalConfig = ModalConfig)
-                    }
-                    ModalConfig.onNoClickHandler.value = {
-                        ClearModalConfig(ModalConfig = ModalConfig)
-                    }
+                    ModalConfiguration.setModalConfig(
+                        title = "Delete History",
+                        content = "Do you want do delete data on ${it.day}/${it.month}/${it.year}?",
+                        show = true,
+                        onYesClickHandler = {
+                            historyViewModel.deleteSteps(it)
+                            ModalConfiguration.clearModalConfig()
+                        },
+                        onNoClickHandler = {
+                            ModalConfiguration.clearModalConfig()
+                        }
+                    )
                 })
             }
         }
@@ -154,7 +152,10 @@ fun StepHistoryItem(step: Steps = Steps(), onDeleteClick: () -> Unit) {
         elevation = 1,
         modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp, top = 1.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 10.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 10.dp)
+        ) {
             Icon(imageVector = Icons.Default.History, contentDescription = "History")
             Row(
                 modifier = Modifier.fillMaxWidth(),

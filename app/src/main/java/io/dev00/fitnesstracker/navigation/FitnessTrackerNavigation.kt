@@ -82,7 +82,6 @@ fun FitnessTrackerNavigation() {
                             modifier = Modifier.padding(padding),
                             navController = navController,
                             goalsViewModel = goalsViewModel,
-                            ModalConfig = ModalConfiguration
                         )
                     }
                     composable(route = FitnessTrackerScreens.HistoryScreen.name) {
@@ -91,7 +90,6 @@ fun FitnessTrackerNavigation() {
                             modifier = Modifier.padding(padding),
                             navController = navController,
                             historyViewModel = historyViewModel,
-                            ModalConfig = modalConfig
                         )
                     }
                     composable(route = FitnessTrackerScreens.AddGoalScreen.name) {
@@ -142,10 +140,10 @@ fun YesOrNoModal(title:String,content: String, onYesClickHandler: () -> Unit, on
                 Row(modifier = Modifier
                     .fillMaxWidth(0.4f)
                     .padding(top = 20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Button(onClick = { onYesClickHandler() }) {
+                    Button(onClick = { onYesClickHandler() }, colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)) {
                         Text(text = "Yes")
                     }
-                    Button(onClick = { onNoClickHandler() }) {
+                    Button(onClick = { onNoClickHandler() }, colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant)) {
                         Text(text = "No")
                     }
                 }
@@ -157,14 +155,22 @@ fun YesOrNoModal(title:String,content: String, onYesClickHandler: () -> Unit, on
 object ModalConfiguration {
     var title = mutableStateOf("")
     var content = mutableStateOf("")
-    var onYesClickHandler = mutableStateOf({  })
+    var onYesClickHandler = mutableStateOf({})
     var onNoClickHandler = mutableStateOf({})
     var show = mutableStateOf(false)
-}
-fun ClearModalConfig(ModalConfig:ModalConfiguration) {
-    ModalConfig.show.value = false
-    ModalConfig.title.value = ""
-    ModalConfig.content.value = ""
-    ModalConfig.onNoClickHandler.value = {}
-    ModalConfig.onYesClickHandler.value = {}
+
+    fun setModalConfig(title:String,content: String,onYesClickHandler: () -> Unit,onNoClickHandler: () -> Unit,show:Boolean) {
+        this.show.value = show
+        this.title.value = title
+        this.content.value = content
+        this.onNoClickHandler.value = onNoClickHandler
+        this.onYesClickHandler.value = onYesClickHandler
+    }
+    fun clearModalConfig() {
+        this.show.value = false
+        this.title.value = ""
+        this.content.value = ""
+        this.onNoClickHandler.value = {}
+        this.onYesClickHandler.value = {}
+    }
 }
