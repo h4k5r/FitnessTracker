@@ -31,7 +31,11 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
     private var dateModel = mutableStateOf("")
 
     init {
-        dateModel.value = fetchCurrentDate()
+        val date = fetchCurrentDate()
+        val day = date.split("/")[0]
+        val month = date.split("/")[1]
+        val year = date.split("/")[2]
+        dateModel.value = date
         viewModelScope.launch(Dispatchers.IO) {
             repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
@@ -41,13 +45,13 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getStepByDate(date = fetchCurrentDate())
+            repository.getStepByDate(day = day, month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
                     if (it.isNullOrEmpty()) {
                         Log.d("TAG", "No Steps data found on the given date")
-                        _currentSteps.value = listOf(Steps(steps = 0, date = fetchCurrentDate()))
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, date = fetchCurrentDate()))
+                        _currentSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
+                        _selectedDateSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
                     } else {
                         _currentSteps.value = it
                         _selectedDateSteps.value = it
@@ -61,13 +65,16 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
     }
 
     fun setDate(date: String) {
+        val day = date.split("/")[0]
+        val month = date.split("/")[1]
+        val year = date.split("/")[2]
         dateModel.value = date
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getStepByDate(date = date)
+            repository.getStepByDate(day = day, month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
                     if (it.isNullOrEmpty()) {
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, date = date))
+                        _selectedDateSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
                     } else {
                         Log.d("TAG", "$it")
                         _selectedDateSteps.value = it
@@ -78,8 +85,11 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
 
 
     fun getSingleStepsByDate(date: String,onStepsFetched:(steps:Steps) -> Unit,onStepsNotFound:() -> Unit) {
+        val day = date.split("/")[0]
+        val month = date.split("/")[1]
+        val year = date.split("/")[2]
         viewModelScope.launch(Dispatchers.Main) {
-            repository.getStepByDate(date = date).collect {
+            repository.getStepByDate(day = day, month = month, year = year).collect {
                 if (!it.isNullOrEmpty()) {
                     onStepsFetched(it[0])
                 } else {

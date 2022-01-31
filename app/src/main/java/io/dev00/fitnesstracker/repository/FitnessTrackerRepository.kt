@@ -7,6 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flowOn
+import java.time.Month
+import java.time.Year
 import javax.inject.Inject
 
 
@@ -33,8 +35,11 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
         fitnessTrackerDAO.getInactiveGoals().flowOn(Dispatchers.IO).conflate()
 
 
-    fun getStepByDate(date: String): Flow<List<Steps>> =
-        fitnessTrackerDAO.getStepsByDate(date = date)
+    fun getStepByDate(day:String,month: String,year: String): Flow<List<Steps>> =
+        fitnessTrackerDAO.getStepsByDate(day = day, month = month, year = year)
+
+    fun getStepsByMonthAndYear(month: String,year: String):Flow<List<Steps>> =
+        fitnessTrackerDAO.getStepsByMonthAndYear(month = month, year = year)
 
 
     suspend fun insertSteps(steps: Steps) = fitnessTrackerDAO.insertSteps(steps = steps)

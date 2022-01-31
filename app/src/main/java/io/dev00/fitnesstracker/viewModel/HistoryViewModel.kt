@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.repository.FitnessTrackerRepository
+import io.dev00.fitnesstracker.utils.fetChMonthAndYear
 import io.dev00.fitnesstracker.utils.fetchCurrentDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,40 +20,36 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(private val repository: FitnessTrackerRepository) :
     ViewModel() {
-    private var _selectedDateSteps = MutableStateFlow<List<Steps>>(emptyList())
-    var selectedDateSteps = _selectedDateSteps.asStateFlow()
 
-    private var dateModel = mutableStateOf("")
+    private var _selectedMonthSteps = MutableStateFlow<List<Steps>>(emptyList())
+    var selectedMonthSteps = _selectedMonthSteps.asStateFlow()
+    val TAG = "TAG"
+    private var monthYearModel = mutableStateOf("");
     init {
-        dateModel.value = fetchCurrentDate()
+        val date = fetchCurrentDate()
+        val month = date.split("/")[1]
+        val year = date.split("/")[2]
+        monthYearModel.value = fetChMonthAndYear()
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getStepByDate(date = fetchCurrentDate())
+            repository.getStepsByMonthAndYear(month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
-                    if (it.isNullOrEmpty()) {
-                        Log.d("TAG", "No Steps data found on the given date")
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, date = fetchCurrentDate()))
-                    } else {
-                        _selectedDateSteps.value = it
-                    }
+                        _selectedMonthSteps.value = it
                 }
         }
     }
-    fun getDate():String {
-        return dateModel.value
+    fun getMonthAndYear():String {
+        return monthYearModel.value
     }
-    fun setDate(date: String) {
-        dateModel.value = date
+    fun setMonthYear(date: String) {
+        val month = date.split("/")[0]
+        val year = date.split("/")[1]
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getStepByDate(date = date)
+            repository.getStepsByMonthAndYear(month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
-                    if (it.isNullOrEmpty()) {
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, date = date))
-                    } else {
                         Log.d("TAG", "$it")
-                        _selectedDateSteps.value = it
-                    }
+                        _selectedMonthSteps.value = it
                 }
         }
     }

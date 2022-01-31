@@ -9,3 +9,10 @@ fun fetchCurrentDate(): String {
     val day: Int = calendar.get(Calendar.DAY_OF_MONTH)
     return "${day}/${month + 1}/${year}"
 }
+
+fun fetChMonthAndYear(): String {
+    val calendar = Calendar.getInstance()
+    val year: Int = calendar.get(Calendar.YEAR)
+    val month: Int = calendar.get(Calendar.MONTH)
+    return "${month + 1}/${year}"
+}

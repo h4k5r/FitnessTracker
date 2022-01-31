@@ -25,7 +25,9 @@ import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.navigation.ClearModalConfig
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
+import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 
 @Composable
@@ -33,6 +35,7 @@ fun GoalsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     goalsViewModel: GoalsViewModel,
+    ModalConfig:ModalConfiguration
 ) {
     val activeGoal = remember {
         goalsViewModel.activeGoal.value
@@ -102,9 +105,18 @@ fun GoalsScreen(
                                         goal = goal,
                                         hasActive = activeGoal.isNotEmpty(),
                                         onDeleteClick = {
-                                            goalsViewModel.deleteGoal(goal = goal)
-                                            navController.backQueue.removeLast()
-                                            navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                            ModalConfig.show.value = true
+                                            ModalConfig.title.value = "Delete Goal"
+                                            ModalConfig.content.value = "Do you want do delete goal: ${goal.goalName}?"
+                                            ModalConfig.onYesClickHandler.value = {
+                                                goalsViewModel.deleteGoal(goal = goal)
+                                                ClearModalConfig(ModalConfig = ModalConfig)
+                                                navController.backQueue.removeLast()
+                                                navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                            }
+                                            ModalConfig.onNoClickHandler.value = {
+                                                ClearModalConfig(ModalConfig = ModalConfig)
+                                            }
                                         },
                                         onEditClick = {
                                             navController.navigate(route = FitnessTrackerScreens.EditGoalScreen.name + "/${goal.id}")
@@ -129,7 +141,7 @@ fun GoalCard(
     onDeleteClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onActivateClick: () -> Unit = {},
-    onDeactivateClick: () -> Unit = {}
+    onDeactivateClick: () -> Unit = {},
 ) {
     BackgroundCard(
         modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp),

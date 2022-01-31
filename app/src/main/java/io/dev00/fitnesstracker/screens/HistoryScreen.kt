@@ -1,35 +1,53 @@
 package io.dev00.fitnesstracker.screens
 
-import android.util.Log
-import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import io.dev00.fitnesstracker.components.configuredDatePickerDialog
+import io.dev00.fitnesstracker.components.BackgroundCard
+import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Steps
-import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
-import io.dev00.fitnesstracker.utils.fetchCurrentDate
+import io.dev00.fitnesstracker.navigation.ClearModalConfig
+import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
 
 @Composable
 fun HistoryScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    historyViewModel: HistoryViewModel
+    historyViewModel: HistoryViewModel,
+    ModalConfig:ModalConfiguration
 ) {
-    val context = LocalContext.current
-    var date = historyViewModel.getDate()
-    var steps = historyViewModel.selectedDateSteps.collectAsState().value[0]
+    var selectedMonth by remember {
+        mutableStateOf(historyViewModel.getMonthAndYear().split("/")[0])
+    }
+    var selectMonthDropDown by remember {
+        mutableStateOf(false)
+    }
+    var selectedYear by remember {
+        mutableStateOf(historyViewModel.getMonthAndYear().split("/")[1])
+    }
+    var selectYearDropDown by remember {
+        mutableStateOf(false)
+    }
+    var steps = historyViewModel.selectedMonthSteps.collectAsState().value.sortedBy { it.day.toInt() }
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -41,69 +59,136 @@ fun HistoryScreen(
             fontWeight = FontWeight(300)
         )
         Text(
-            text = "Pick Date",
+            text = "Pick Month and Year",
             modifier = Modifier.padding(top = 20.dp),
             fontSize = MaterialTheme.typography.h5.fontSize,
             fontWeight = FontWeight(500)
         )
-        Row(
-            modifier = Modifier.padding(top = 10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = buildAnnotatedString {
-                append(AnnotatedString("Date:  "))
-                append(AnnotatedString(date, spanStyle = SpanStyle(fontWeight = FontWeight.W500)))
-            })
-            Button(
-                onClick = {
-                    configuredDatePickerDialog(context = context) {
-                        date = it
-                        historyViewModel.setDate(it)
-                        navController.backQueue.removeLast()
-                        navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
-                    }.show()
-
-                }, modifier = Modifier
-                    .padding(start = 10.dp)
-                    .height(20.dp), contentPadding = PaddingValues(0.dp)
-            ) {
-                Text(text = "Change", fontSize = 12.sp)
+        Row() {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Selected Month: ")
+                Spacer(modifier = Modifier.width(10.dp))
+                Box() {
+                    Text(text = selectedMonth, fontWeight = FontWeight.Bold)
+                    DropdownMenu(
+                        modifier = Modifier
+                            .fillMaxHeight(0.3f)
+                            .padding(top = 5.dp),
+                        expanded = selectMonthDropDown,
+                        onDismissRequest = { selectMonthDropDown = false }) {
+                        for (i in 1..12) {
+                            Text(
+                                modifier = Modifier.clickable {
+                                    selectedMonth = i.toString()
+                                    historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                    selectMonthDropDown = false
+                                },
+                                text = i.toString()
+                            )
+                        }
+                    }
+                }
+                SimpleIconButton(
+                    modifier = Modifier,
+                    icon = Icons.Default.ArrowDropDown,
+                    contentDescription = "Month Drop Down"
+                ) {
+                    selectMonthDropDown = true
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Selected Year: ")
+                Spacer(modifier = Modifier.width(10.dp))
+                Box() {
+                    Text(text = selectedYear, fontWeight = FontWeight.Bold)
+                    DropdownMenu(
+                        modifier = Modifier
+                            .fillMaxHeight(0.3f)
+                            .padding(top = 5.dp),
+                        expanded = selectYearDropDown,
+                        onDismissRequest = { selectYearDropDown = false }) {
+                        for (i in 2000..2100) {
+                            Text(
+                                modifier = Modifier.clickable {
+                                    selectedYear = i.toString()
+                                    historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                    selectYearDropDown = false
+                                },
+                                text = i.toString()
+                            )
+                        }
+                    }
+                }
+                SimpleIconButton(
+                    modifier = Modifier,
+                    icon = Icons.Default.ArrowDropDown,
+                    contentDescription = "Year Drop Down"
+                ) {
+                    selectYearDropDown = true
+                }
             }
         }
-        if (steps.steps != 0) {
-            Text(text = buildAnnotatedString {
-                append(
-                    AnnotatedString(
-                        text = "Number of Steps: ",
-                        spanStyle = SpanStyle(fontSize = MaterialTheme.typography.h5.fontSize)
-                    )
-                )
-                append(
-                    AnnotatedString(
-                        text = steps.steps.toString(),
-                        spanStyle = SpanStyle(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = MaterialTheme.typography.h5.fontSize
-                        )
-                    )
-                )
-            }, modifier = Modifier.padding(top = 40.dp))
-            Button(
-                onClick = {
-                    navController.backQueue.removeLast()
-                    navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
-                    historyViewModel.deleteSteps(steps = steps)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = MaterialTheme.colors.error
-                )
-            ) {
-                Text(text = "Delete History")
+
+        LazyColumn(modifier = Modifier.padding(top = 20.dp)) {
+            items(steps) {
+                StepHistoryItem(it, onDeleteClick = {
+                    ModalConfig.show.value = true
+                    ModalConfig.title.value = "Delete History"
+                    ModalConfig.content.value = "Do you want do delete data on ${it.day}/${it.month}/${it.year}?"
+                    ModalConfig.onYesClickHandler.value = {
+                        historyViewModel.deleteSteps(it)
+                        ClearModalConfig(ModalConfig = ModalConfig)
+                    }
+                    ModalConfig.onNoClickHandler.value = {
+                        ClearModalConfig(ModalConfig = ModalConfig)
+                    }
+                })
             }
         }
     }
+}
 
+@Composable
+fun StepHistoryItem(step: Steps = Steps(), onDeleteClick: () -> Unit) {
+    BackgroundCard(
+        elevation = 1,
+        modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp, top = 1.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 10.dp)) {
+            Icon(imageVector = Icons.Default.History, contentDescription = "History")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        start = 5.dp,
+                        end = 10.dp,
+                        top = 5.dp,
+                        bottom = 5.dp
+                    )
+                ) {
+                    Row() {
+                        Text(text = "Steps: ")
+                        Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
+                    }
+                    Row() {
+                        Text(text = "Date: ")
+                        Text(
+                            text = "${step.day}/${step.month}/${step.year}",
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                }
+                SimpleIconButton(
+                    modifier = Modifier.padding(5.dp),
+                    icon = Icons.Default.Delete,
+                    contentDescription = "Delete Goal",
+                ) {
+                    onDeleteClick()
+                }
+            }
+        }
+    }
 }

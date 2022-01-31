@@ -28,11 +28,14 @@ interface FitnessTrackerDAO {
     @Delete
     suspend fun deleteGoal(goal: Goal)
 
-    @Query("SELECT * from steps where date=:date LIMIT 1")
-    fun getStepsByDate(date:String):Flow<List<Steps>>
+    @Query("SELECT * from steps where day=:day AND month=:month AND year=:year LIMIT 1")
+    fun getStepsByDate(day:String,month:String,year:String):Flow<List<Steps>>
 
-    @Query("SELECT * from steps where date=:date LIMIT 1")
-    fun getOneStepsByDate(date:String):Steps?
+    @Query("SELECT * from steps where day=:day AND month=:month AND year=:year LIMIT 1")
+    fun getOneStepsByDate(day:String,month:String,year:String):Steps?
+
+    @Query("SELECT * from steps where month=:month AND year=:year")
+    fun getStepsByMonthAndYear(month:String,year:String):Flow<List<Steps>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSteps(steps: Steps)
