@@ -18,11 +18,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -71,7 +73,50 @@ fun FilledCircularIconButton(
 }
 
 @Composable
-fun BottomNavBar(modifier: Modifier = Modifier, navController: NavController,activeScreen:MutableState<String>) {
+fun TopBar(navController: NavController,content: @Composable () -> Unit = {}) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        var isDropDownOpen by remember {
+            mutableStateOf(false)
+        }
+        content()
+        Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
+            SimpleIconButton(
+                modifier = Modifier,
+                icon = Icons.Default.MoreVert,
+                contentDescription = "Settings Drop Down"
+            ) {
+                isDropDownOpen = true
+            }
+            Box() {
+                DropdownMenu(
+                    modifier = Modifier,
+                    expanded = isDropDownOpen,
+                    onDismissRequest = { isDropDownOpen = false }) {
+                    Text(
+                        modifier = Modifier.clickable {
+                            isDropDownOpen = false
+                            navController.navigate(route = FitnessTrackerScreens.SettingsScreen.name)
+                        }.padding(5.dp),
+                        text = "Settings"
+                    )
+
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
+fun BottomNavBar(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    activeScreen: MutableState<String>
+) {
     val darkTheme: Boolean = isSystemInDarkTheme()
     var background = Color.Transparent
     var homeIconTint: Color
@@ -210,6 +255,7 @@ fun OutlinedIconInputField(
         keyboardActions = onAction
     )
 }
+
 @Composable
 fun OutlinedInputField(
     modifier: Modifier = Modifier,
@@ -237,17 +283,21 @@ fun OutlinedInputField(
 }
 
 @Composable
-fun CheckBoxWithText(modifier: Modifier = Modifier,checkedState:MutableState<Boolean>,text:String) {
+fun CheckBoxWithText(
+    modifier: Modifier = Modifier,
+    checkedState: MutableState<Boolean>,
+    text: String
+) {
     Row(modifier = modifier) {
         Text(modifier = Modifier.padding(end = 10.dp), text = text)
         Checkbox(checked = checkedState.value, onCheckedChange = {
             checkedState.value = it
-        } )
+        })
     }
 }
 
 
-fun configuredDatePickerDialog(context:Context, onDatePicked:(String) -> Unit):DatePickerDialog {
+fun configuredDatePickerDialog(context: Context, onDatePicked: (String) -> Unit): DatePickerDialog {
     val year: Int
     val month: Int
     val day: Int
@@ -258,8 +308,8 @@ fun configuredDatePickerDialog(context:Context, onDatePicked:(String) -> Unit):D
     val datePickerDialog = DatePickerDialog(
         context,
         { _: DatePicker, year: Int, month: Int, day: Int ->
-            onDatePicked("${day}/${month+1}/${year}")
+            onDatePicked("${day}/${month + 1}/${year}")
         }, year, month, day
     )
-    return  datePickerDialog
+    return datePickerDialog
 }

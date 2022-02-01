@@ -10,8 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flag
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +23,7 @@ import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
@@ -34,12 +34,22 @@ fun GoalsScreen(
     navController: NavController,
     goalsViewModel: GoalsViewModel,
 ) {
+    val preferencesList = goalsViewModel.preferences.value
     val activeGoal = remember {
         goalsViewModel.activeGoal.value
     }
 
     val inactiveGoals = remember {
         goalsViewModel.inactiveGoals.value
+    }
+
+    var editableGoal by remember {
+        mutableStateOf(Preference(name = "editable Goal", value = true))
+    }
+
+    val editable = preferencesList.find { it.name == "editable Goal" }
+    if (editable != null) {
+        editableGoal = editable
     }
     Surface(
         modifier = modifier
@@ -81,7 +91,8 @@ fun GoalsScreen(
                                         navController.backQueue.removeLast()
                                         navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                         goalsViewModel.deactivateGoal(activeGoal[0])
-                                    })
+                                    }, isEditable = false
+                                )
                             } else {
                                 Text(text = "No Active Goal")
                             }
@@ -124,7 +135,8 @@ fun GoalsScreen(
                                         onEditClick = {
                                             navController.navigate(route = FitnessTrackerScreens.EditGoalScreen.name + "/${goal.id}")
                                         },
-                                        onActivateClick = onActivateClick
+                                        onActivateClick = onActivateClick,
+                                        isEditable = editableGoal.value
                                     )
                                 }
                             }
@@ -141,6 +153,7 @@ fun GoalCard(
     goal: Goal,
     isActive: Boolean = false,
     hasActive: Boolean = false,
+    isEditable: Boolean,
     onDeleteClick: () -> Unit = {},
     onEditClick: () -> Unit = {},
     onActivateClick: () -> Unit = {},
@@ -199,12 +212,14 @@ fun GoalCard(
                         ) {
                             onDeleteClick()
                         }
-                        SimpleIconButton(
-                            modifier = Modifier.padding(5.dp),
-                            icon = Icons.Default.Edit,
-                            contentDescription = "Edit Goal",
-                        ) {
-                            onEditClick()
+                        if (isEditable) {
+                            SimpleIconButton(
+                                modifier = Modifier.padding(5.dp),
+                                icon = Icons.Default.Edit,
+                                contentDescription = "Edit Goal",
+                            ) {
+                                onEditClick()
+                            }
                         }
                         if (!hasActive) {
                             Button(

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.repository.FitnessTrackerRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +21,9 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
     ViewModel() {
     private var _activeGoal = MutableStateFlow<List<Goal>>(emptyList())
     private var _inactiveGoalsList = MutableStateFlow<List<Goal>>(emptyList())
+
+    private var _preferences = MutableStateFlow<List<Preference>>(emptyList())
+    var preferences = _preferences.asStateFlow()
 
     var activeGoal = _activeGoal.asStateFlow()
     var inactiveGoals = _inactiveGoalsList.asStateFlow()
@@ -39,6 +43,11 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
                     Log.d("TAG", "No Inactive Goals")
                 }
                 _inactiveGoalsList.value = it
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getPreferences().distinctUntilChanged().collect {
+                _preferences.value = it
             }
         }
 

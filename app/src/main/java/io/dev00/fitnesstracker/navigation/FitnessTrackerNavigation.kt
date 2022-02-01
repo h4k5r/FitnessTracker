@@ -19,15 +19,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.BottomNavBar
-import io.dev00.fitnesstracker.screens.AddOrEditGoalScreen
-import io.dev00.fitnesstracker.screens.GoalsScreen
-import io.dev00.fitnesstracker.screens.HistoryScreen
-import io.dev00.fitnesstracker.screens.HomeScreen
+import io.dev00.fitnesstracker.screens.*
 import io.dev00.fitnesstracker.ui.theme.FitnessTrackerTheme
-import io.dev00.fitnesstracker.viewModel.EditGoalViewModel
-import io.dev00.fitnesstracker.viewModel.GoalsViewModel
-import io.dev00.fitnesstracker.viewModel.HistoryViewModel
-import io.dev00.fitnesstracker.viewModel.HomeViewModel
+import io.dev00.fitnesstracker.viewModel.*
 
 @ExperimentalComposeUiApi
 @Composable
@@ -36,21 +30,25 @@ fun FitnessTrackerNavigation() {
     val activeScreen = remember {
         mutableStateOf(FitnessTrackerScreens.HomeScreen.name)
     }
+
+    // At the top level of your kotlin file:
     FitnessTrackerTheme {
         Surface(color = MaterialTheme.colors.background) {
             val goalsViewModel: GoalsViewModel = viewModel()
             val homeViewModel: HomeViewModel = viewModel()
             val historyViewModel: HistoryViewModel = viewModel()
             val editGoalViewModel: EditGoalViewModel = viewModel()
+            val settingsViewModel:SettingsViewModel = viewModel()
             var modalConfig by remember {
                 mutableStateOf(ModalConfiguration)
             }
-            if(modalConfig.show.value) {
+            if (modalConfig.show.value) {
                 YesOrNoModal(
                     title = modalConfig.title.value,
                     content = modalConfig.content.value,
                     onYesClickHandler = modalConfig.onYesClickHandler.value,
-                    onNoClickHandler = modalConfig.onNoClickHandler.value)
+                    onNoClickHandler = modalConfig.onNoClickHandler.value
+                )
             }
             Scaffold(
                 modifier = Modifier
@@ -115,6 +113,12 @@ fun FitnessTrackerNavigation() {
                         )
 //                        DetailsScreen(navController = navController, id = it.arguments?.getString("movieId").toString() )
                     }
+                    composable(
+                        route = FitnessTrackerScreens.SettingsScreen.name
+                    ) {
+                        SettingsScreen(navController = navController,settingsViewModel  = settingsViewModel)
+//                        DetailsScreen(navController = navController, id = it.arguments?.getString("movieId").toString() )
+                    }
                 }
             }
         }
@@ -122,7 +126,12 @@ fun FitnessTrackerNavigation() {
 }
 
 @Composable
-fun YesOrNoModal(title:String,content: String, onYesClickHandler: () -> Unit, onNoClickHandler: () -> Unit) {
+fun YesOrNoModal(
+    title: String,
+    content: String,
+    onYesClickHandler: () -> Unit,
+    onNoClickHandler: () -> Unit
+) {
     Column(
         modifier = Modifier
             .background(Color(0x80000000))
@@ -133,17 +142,33 @@ fun YesOrNoModal(title:String,content: String, onYesClickHandler: () -> Unit, on
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         BackgroundCard(modifier = Modifier.fillMaxWidth(0.9f)) {
-            Column(modifier = Modifier.padding(10.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text( text = title, textAlign = TextAlign.Center, fontSize = MaterialTheme.typography.h5.fontSize)
+            Column(
+                modifier = Modifier.padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = title,
+                    textAlign = TextAlign.Center,
+                    fontSize = MaterialTheme.typography.h5.fontSize
+                )
                 Spacer(modifier = Modifier.height(10.dp))
-                Text( text = content, textAlign = TextAlign.Center)
-                Row(modifier = Modifier
-                    .fillMaxWidth(0.4f)
-                    .padding(top = 20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Button(onClick = { onYesClickHandler() }, colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)) {
+                Text(text = content, textAlign = TextAlign.Center)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .padding(top = 20.dp), horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = { onYesClickHandler() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)
+                    ) {
                         Text(text = "Yes")
                     }
-                    Button(onClick = { onNoClickHandler() }, colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant)) {
+                    Button(
+                        onClick = { onNoClickHandler() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant)
+                    ) {
                         Text(text = "No")
                     }
                 }
@@ -159,13 +184,20 @@ object ModalConfiguration {
     var onNoClickHandler = mutableStateOf({})
     var show = mutableStateOf(false)
 
-    fun setModalConfig(title:String,content: String,onYesClickHandler: () -> Unit,onNoClickHandler: () -> Unit,show:Boolean) {
+    fun setModalConfig(
+        title: String,
+        content: String,
+        onYesClickHandler: () -> Unit,
+        onNoClickHandler: () -> Unit,
+        show: Boolean
+    ) {
         this.show.value = show
         this.title.value = title
         this.content.value = content
         this.onNoClickHandler.value = onNoClickHandler
         this.onYesClickHandler.value = onYesClickHandler
     }
+
     fun clearModalConfig() {
         this.show.value = false
         this.title.value = ""

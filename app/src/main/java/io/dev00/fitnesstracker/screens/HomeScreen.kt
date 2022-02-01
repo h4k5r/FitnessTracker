@@ -23,6 +23,7 @@ import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.OutlinedIconInputField
+import io.dev00.fitnesstracker.components.TopBar
 import io.dev00.fitnesstracker.components.configuredDatePickerDialog
 import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
@@ -42,12 +43,14 @@ fun HomeScreen(
             .padding(start = 5.dp, end = 5.dp)
 
     ) {
-        Text(
-            text = "Hello",
-            modifier = Modifier,
-            fontSize = MaterialTheme.typography.h4.fontSize,
-            fontWeight = FontWeight(300)
-        )
+        TopBar(navController = navController) {
+            Text(
+                text = "Hello",
+                modifier = Modifier,
+                fontSize = MaterialTheme.typography.h4.fontSize,
+                fontWeight = FontWeight(300)
+            )
+        }
         Spacer(modifier = Modifier.height(30.dp))
         TopCard(homeViewModel = homeViewModel)
         Spacer(modifier = Modifier.height(30.dp))

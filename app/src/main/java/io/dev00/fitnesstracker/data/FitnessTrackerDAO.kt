@@ -2,6 +2,7 @@ package io.dev00.fitnesstracker.data
 
 import androidx.room.*
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.models.Steps
 import kotlinx.coroutines.flow.Flow
 
@@ -45,4 +46,18 @@ interface FitnessTrackerDAO {
 
     @Delete
     suspend fun deleteSteps(steps: Steps)
+
+    @Query("SELECT * from preference")
+    fun getPreferences(): Flow<List<Preference>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPreference(preference: Preference)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun updatePreference(preference: Preference)
+
+    @Delete
+    suspend fun deletePreference(preference: Preference)
+
+
 }

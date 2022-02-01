@@ -2,6 +2,7 @@ package io.dev00.fitnesstracker.repository
 
 import io.dev00.fitnesstracker.data.FitnessTrackerDAO
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.models.Steps
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -35,10 +36,10 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
         fitnessTrackerDAO.getInactiveGoals().flowOn(Dispatchers.IO).conflate()
 
 
-    fun getStepByDate(day:String,month: String,year: String): Flow<List<Steps>> =
+    fun getStepByDate(day: String, month: String, year: String): Flow<List<Steps>> =
         fitnessTrackerDAO.getStepsByDate(day = day, month = month, year = year)
 
-    fun getStepsByMonthAndYear(month: String,year: String):Flow<List<Steps>> =
+    fun getStepsByMonthAndYear(month: String, year: String): Flow<List<Steps>> =
         fitnessTrackerDAO.getStepsByMonthAndYear(month = month, year = year)
 
 
@@ -47,4 +48,17 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
     suspend fun updateSteps(steps: Steps) = fitnessTrackerDAO.updateSteps(steps = steps)
 
     suspend fun deleteSteps(steps: Steps) = fitnessTrackerDAO.deleteSteps(steps = steps)
+
+    suspend fun getPreferences(): Flow<List<Preference>> =
+        fitnessTrackerDAO.getPreferences()
+
+    suspend fun insertPreference(preference: Preference) =
+        fitnessTrackerDAO.insertPreference(preference = preference)
+
+    suspend fun updatePreference(preference: Preference) =
+        fitnessTrackerDAO.updatePreference(preference = preference)
+
+    suspend fun deletePreference(preference: Preference) =
+        fitnessTrackerDAO.deletePreference(preference = preference)
+
 }
