@@ -1,6 +1,7 @@
 package io.dev00.fitnesstracker.screens
 
 import android.util.Log
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,6 +44,13 @@ fun SettingsScreen(
             editableState = editable.value
         }
     }
+    var isDarkMode = isSystemInDarkTheme()
+    var buttonColor = Color.Black
+    var arrowColor = Color.White
+    if (isDarkMode) {
+        buttonColor = Color.White
+        arrowColor = Color.Black
+    }
     Log.d("TAG", "SettingsScreen: ${editableState}")
     Scaffold(modifier = modifier,
         topBar = {
@@ -52,7 +60,8 @@ fun SettingsScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         FilledCircularIconButton(
                             icon = Icons.Default.ArrowBack,
-                            backgroundColor = Color.Black
+                            backgroundColor = buttonColor,
+                            arrowColor = arrowColor
                         ) {
                             navController.popBackStack()
                         }

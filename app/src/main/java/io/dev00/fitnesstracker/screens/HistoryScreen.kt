@@ -152,42 +152,44 @@ fun StepHistoryItem(step: Steps = Steps(), onDeleteClick: () -> Unit) {
         elevation = 1,
         modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp, top = 1.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 10.dp)
-        ) {
-            Icon(imageVector = Icons.Default.History, contentDescription = "History")
+        Box() {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 10.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(
-                        start = 5.dp,
-                        end = 10.dp,
-                        top = 5.dp,
-                        bottom = 5.dp
-                    )
+                Icon(modifier = Modifier.size(40.dp), imageVector = Icons.Default.History, contentDescription = "History")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Row() {
-                        Text(text = "Steps: ")
-                        Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
-                    }
-                    Row() {
-                        Text(text = "Date: ")
-                        Text(
-                            text = "${step.day}/${step.month}/${step.year}",
-                            fontWeight = FontWeight.Bold
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 5.dp,
+                            end = 10.dp,
+                            top = 5.dp,
+                            bottom = 5.dp
                         )
-                    }
+                    ) {
+                        Row() {
+                            Text(text = "Steps: ")
+                            Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
+                        }
+                        Row() {
+                            Text(text = "Date: ")
+                            Text(
+                                text = "${step.day}/${step.month}/${step.year}",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
 
-                }
-                SimpleIconButton(
-                    modifier = Modifier.padding(5.dp),
-                    icon = Icons.Default.Delete,
-                    contentDescription = "Delete Goal",
-                ) {
-                    onDeleteClick()
+                    }
+                    SimpleIconButton(
+                        modifier = Modifier.padding(5.dp),
+                        icon = Icons.Default.Delete,
+                        contentDescription = "Delete Goal",
+                    ) {
+                        onDeleteClick()
+                    }
                 }
             }
         }
