@@ -239,10 +239,12 @@ fun GoalsDropDown(homeViewModel: HomeViewModel, onGoalSelected: (goal: Goal) -> 
                 onDismissRequest = { selectedGoalDropDown = false }) {
                 for (goal in allGoals) {
                     Text(
-                        modifier = Modifier.clickable {
-                            selectedGoalDropDown = false
-                            onGoalSelected(goal)
-                        },
+                        modifier = Modifier
+                            .clickable {
+                                selectedGoalDropDown = false
+                                onGoalSelected(goal)
+                            }
+                            .padding(5.dp),
                         text = goal.goalName
                     )
                 }

@@ -132,7 +132,7 @@ fun HistoryScreen(
                                         selectedMonth = i.toString()
                                         historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
                                         selectMonthDropDown = false
-                                    },
+                                    }.padding(5.dp),
                                     text = i.toString()
                                 )
                             }
@@ -163,7 +163,7 @@ fun HistoryScreen(
                                         selectedYear = i.toString()
                                         historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
                                         selectYearDropDown = false
-                                    },
+                                    }.padding(5.dp),
                                     text = i.toString()
                                 )
                             }

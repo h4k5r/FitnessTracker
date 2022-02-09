@@ -34,7 +34,10 @@ class HistoryViewModel @Inject constructor(private val repository: FitnessTracke
             repository.getStepsByMonthAndYear(month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
-                        _selectedMonthSteps.value = it
+                        _selectedMonthSteps.value = it.filter {
+                            val date = "${it.day}/${it.month}/${it.year}"
+                            fetchCurrentDate() != date
+                        }
                 }
         }
     }
