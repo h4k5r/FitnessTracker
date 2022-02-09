@@ -8,10 +8,7 @@ import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.repository.FitnessTrackerRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -53,31 +50,25 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
 
     }
 
-    suspend fun findGoalByName(name: String,callbackFunction:(goals:List<Goal>) -> Unit = {}) {
-        repository.getGoalByName(name = name).distinctUntilChanged().collect {
-            callbackFunction(it)
-        }
-    }
 
-    fun addGoal(goal: Goal,successCallback:() -> Unit = {},failureCallback: () -> Unit = {}) {
+    fun addGoal(goal: Goal, successCallback: () -> Unit = {}, failureCallback: () -> Unit = {}) {
         viewModelScope.launch(Dispatchers.IO) {
-            findGoalByName(name = goal.goalName, callbackFunction = {
-                if (it.isEmpty()) {
-                    Log.d("TAG", "addGoal: ${it.size}")
-                    Log.d("TAG", "addGoal: $goal added")
-                    viewModelScope.launch {
-                        repository.insertGoal(goal = goal)
-                        successCallback();
-                    }
-                } else {
-                    failureCallback()
-                }
-            })
+            val found = repository.getGoalByName(goal.goalName)
+            if (found.isEmpty()) {
+                repository.insertGoal(goal = goal)
+                Log.d("TAG", "addGoal: empty")
+            } else {
+                failureCallback()
+                Log.d("TAG", "addGoal: found")
+            }
         }
     }
 
     fun deleteGoal(goal: Goal) {
-        viewModelScope.launch {
+        Log.d("TAG", "deleteGoal: Delete called")
+
+        viewModelScope.launch(Dispatchers.Main) {
+            Log.d("TAG", "deleteGoal: Delete called")
             repository.deleteGoal(goal = goal)
         }
     }

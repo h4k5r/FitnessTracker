@@ -24,6 +24,7 @@ import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.components.OutlinedInputField
 import io.dev00.fitnesstracker.components.SnackBarConfig
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.viewModel.EditGoalViewModel
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 import kotlinx.coroutines.Dispatchers
@@ -86,7 +87,6 @@ fun AddOrEditGoalScreen(
         screenHeading = "Create Goal"
         buttonText = "Add"
         buttonAction = {
-            //Todo Create Goal Action
             if (isNamevalid && isStepsValid) {
                 keyboardController?.hide()
                 goalsViewModel.addGoal(
@@ -94,17 +94,17 @@ fun AddOrEditGoalScreen(
                         goalName = goalName.value,
                         steps = goalSteps.value.toInt()
                     ),
-                    successCallback = {
-                        navController.popBackStack()
-                    },
                     failureCallback = {
-                        coroutineScope.launch(Dispatchers.Main) {
-                            SnackBarConfig.setSnackBarConfig(content = "Goal Exists", show = true, showButton = false)
-                            delay(2000)
-                            SnackBarConfig.clearSnackBarConfig()
+                        SnackBarConfig.setSnackBarConfig(show = true, content = "Goal Already Exists", showButton = false)
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Thread().run {
+                                Thread.sleep(2000)
+                                SnackBarConfig.clearSnackBarConfig()
+                            }
                         }
                     }
                 )
+                navController.popBackStack()
             }
         }
     } else {
@@ -137,7 +137,7 @@ fun AddOrEditGoalScreen(
                         backgroundColor = buttonColor,
                         arrowColor = arrowColor
                     ) {
-                        navController.popBackStack()
+                        navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                     }
                 },
                 elevation = 0.dp

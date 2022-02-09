@@ -19,10 +19,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
-import io.dev00.fitnesstracker.components.ModalConfiguration
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.components.SnackBarConfig
 import io.dev00.fitnesstracker.models.Goal
@@ -30,7 +28,6 @@ import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -45,10 +42,14 @@ fun GoalsScreen(
     val activeGoal = remember {
         goalsViewModel.activeGoal.value
     }
+//    var deleted by remember {
+//        mutableStateOf(Goal())
+//    }
 
-    val inactiveGoals = remember {
-        mutableListOf(*goalsViewModel.inactiveGoals.value.toTypedArray())
-    }
+//    val inactiveGoals = remember {
+//        mutableListOf(*goalsViewModel.inactiveGoals.value.toTypedArray())
+//    }
+    val inactiveGoals = goalsViewModel.inactiveGoals.collectAsState()
 
     var editableGoal by remember {
         mutableStateOf(Preference(name = "editable Goal", value = true))
@@ -109,9 +110,10 @@ fun GoalsScreen(
                                 fontSize = MaterialTheme.typography.h5.fontSize,
                                 fontWeight = FontWeight(300)
                             )
+
                             LazyColumn(modifier = Modifier.padding(bottom = 20.dp)) {
-                                items(inactiveGoals) { goal ->
-                                    var onActivateClick = {
+                                items(inactiveGoals.value) { goal ->
+                                    val onActivateClick = {
                                         if (activeGoal.isNotEmpty()) {
                                             goalsViewModel.deactivateGoal(activeGoal[0])
                                         }
@@ -122,11 +124,8 @@ fun GoalsScreen(
                                     GoalCard(
                                         goal = goal,
                                         onDeleteClick = {
-                                            var deleted = goal
-                                            val deleteJob = coroutineScope.launch(Dispatchers.Main) {
-                                                goalsViewModel.deleteGoal(goal = goal)
-                                                navController.backQueue.removeLast()
-                                                navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                            goalsViewModel.deleteGoal(goal = goal)
+                                            coroutineScope.launch(Dispatchers.Main) {
                                                 delay(2000)
                                                 SnackBarConfig.clearSnackBarConfig()
                                             }
@@ -135,11 +134,8 @@ fun GoalsScreen(
                                                 show = true,
                                                 buttonText = "Undo",
                                                 buttonAction = {
-                                                    deleteJob.cancel()
-                                                    goalsViewModel.addGoal(deleted)
+                                                    goalsViewModel.addGoal(goal)
                                                     SnackBarConfig.clearSnackBarConfig()
-                                                    navController.backQueue.removeLast()
-                                                    navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                                 }, showButton = true)
                                         },
                                         onEditClick = {
