@@ -54,6 +54,11 @@ class HistoryViewModel @Inject constructor(private val repository: FitnessTracke
         }
     }
 
+    fun deleteMonth(month:String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.deleteMonth(month = month)
+        }
+    }
 
      fun deleteSteps(steps: Steps) {
         viewModelScope.launch(Dispatchers.IO) {

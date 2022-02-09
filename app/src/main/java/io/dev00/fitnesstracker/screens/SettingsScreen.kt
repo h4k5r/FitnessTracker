@@ -25,21 +25,33 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel
 ) {
     val preferencesList = settingsViewModel.preferences.value
-    var editableState = remember {
+    var init by remember {
         mutableStateOf(true)
     }
-    var init by remember {
+    var editableState = remember {
         mutableStateOf(true)
     }
     var editableGoal by remember {
         mutableStateOf(Preference(name = "editable Goal", value = true))
     }
+    var historicalState = remember {
+        mutableStateOf(true)
+    }
+    var historicalRecording by remember {
+        mutableStateOf(Preference(name = "historical editing", value = true))
+    }
     if (init) {
         init = false
         val editable = preferencesList.find { it.name == "editable Goal" }
+        val historical= preferencesList.find { it.name == "historical editing" }
+
         if (editable != null) {
             editableGoal = editable
             editableState.value = editable.value
+        }
+        if (historical != null) {
+            historicalRecording = historical
+            historicalState.value = historical.value
         }
     }
     var isDarkMode = isSystemInDarkTheme()
@@ -86,11 +98,11 @@ fun SettingsScreen(
                 })
             SettingsItem(
                 settingsText = "Make Historical Recording",
-                editableState = editableState,
+                editableState = historicalState,
                 onCheckedChange = {
-//                    editableState.value = it
-//                    editableGoal.value = it
-//                    settingsViewModel.setPreference(editableGoal)
+                    historicalState.value = it
+                    historicalRecording.value = it
+                    settingsViewModel.setPreference(historicalRecording)
                 })
         }
 //        Row(

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.repository.FitnessTrackerRepository
 import io.dev00.fitnesstracker.utils.fetchCurrentDate
@@ -30,6 +31,9 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
     private var _allGoals = MutableStateFlow<List<Goal>>(emptyList())
     var allGoals = _allGoals.asStateFlow();
 
+    private var _preferences = MutableStateFlow<List<Preference>>(emptyList())
+    var preferences = _preferences.asStateFlow()
+
     private var dateModel = mutableStateOf("")
     private var historyGoal = mutableStateOf(Goal())
 
@@ -39,6 +43,11 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         val month = date.split("/")[1]
         val year = date.split("/")[2]
         dateModel.value = date
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getPreferences().distinctUntilChanged().collect {
+                _preferences.value = it
+            }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {

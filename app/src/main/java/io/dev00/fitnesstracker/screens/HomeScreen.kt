@@ -25,6 +25,7 @@ import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.*
 import io.dev00.fitnesstracker.models.Goal
+import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.utils.fetchCurrentDate
@@ -209,7 +210,10 @@ fun TopCard(homeViewModel: HomeViewModel) {
                     }
                     Spacer(modifier = Modifier.height(10.dp))
                     Log.d("TAG", "TopCard: ${homeViewModel.getHistoryGoal()}")
-                    Progress(currentSteps = selectedDaySteps.steps, activeGoal = homeViewModel.getHistoryGoal())
+                    Progress(
+                        currentSteps = selectedDaySteps.steps,
+                        activeGoal = homeViewModel.getHistoryGoal()
+                    )
                 }
             }
         }
@@ -317,6 +321,15 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
 @ExperimentalComposeUiApi
 @Composable
 fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
+    val preferencesList = homeViewModel.preferences.collectAsState().value
+    var historicalEditing by remember {
+        mutableStateOf(Preference(name = "historical editing", value = true))
+    }
+    val historical = preferencesList.find { it.name == "historical editing" }
+    if(historical != null) {
+        historicalEditing = historical
+    }
+
     val currentDaySteps: Steps = homeViewModel.currentSteps.collectAsState().value[0]
     val selectedDaySteps: Steps = homeViewModel.selectedDateSteps.collectAsState().value[0]
     val isSameDate = fetchCurrentDate() == homeViewModel.getDate()
@@ -349,14 +362,16 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                     Text(text = "Date : ")
                     Text(text = date, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.width(10.dp))
-                    Button(
-                        onClick = {
-                            datePickerDialog.show()
-                        },
-                        modifier = Modifier.height(30.dp),
-                        contentPadding = PaddingValues(top = 0.dp, bottom = 0.dp)
-                    ) {
-                        Text(text = "Change")
+                    if (historicalEditing.value) {
+                        Button(
+                            onClick = {
+                                datePickerDialog.show()
+                            },
+                            modifier = Modifier.height(30.dp),
+                            contentPadding = PaddingValues(top = 0.dp, bottom = 0.dp)
+                        ) {
+                            Text(text = "Change")
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))

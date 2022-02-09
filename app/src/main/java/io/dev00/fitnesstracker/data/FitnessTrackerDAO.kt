@@ -47,6 +47,9 @@ interface FitnessTrackerDAO {
     @Delete
     suspend fun deleteSteps(steps: Steps)
 
+    @Query("DELETE FROM steps where month=:month")
+    suspend fun deleteAllStepsInAMonth(month:String)
+
     @Query("SELECT * from preference")
     fun getPreferences(): Flow<List<Preference>>
 

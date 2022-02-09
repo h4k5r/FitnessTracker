@@ -104,13 +104,13 @@ fun GoalsScreen(
                             )
                             LazyColumn(modifier = Modifier.padding(bottom = 20.dp)) {
                                 items(inactiveGoals) { goal ->
-                                    var onActivateClick = {}
-                                    if (activeGoal.isEmpty()) {
-                                        onActivateClick = {
-                                            goalsViewModel.activateGoal(goal = goal)
-                                            navController.backQueue.removeLast()
-                                            navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                    var onActivateClick = {
+                                        if (activeGoal.isNotEmpty()) {
+                                            goalsViewModel.deactivateGoal(activeGoal[0])
                                         }
+                                        goalsViewModel.activateGoal(goal = goal)
+                                        navController.backQueue.removeLast()
+                                        navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                     }
                                     GoalCard(
                                         goal = goal,
@@ -221,16 +221,16 @@ fun GoalCard(
                                 onEditClick()
                             }
                         }
-                        if (!hasActive) {
-                            Button(
-                                onClick = {
-                                    onActivateClick()
-                                },
-                                contentPadding = PaddingValues(horizontal = 5.dp)
-                            ) {
-                                Text(text = "Activate")
-                            }
+//                        if (!hasActive) {
+                        Button(
+                            onClick = {
+                                onActivateClick()
+                            },
+                            contentPadding = PaddingValues(horizontal = 5.dp)
+                        ) {
+                            Text(text = "Activate")
                         }
+//                        }
                     } else {
                         Button(
                             onClick = { onDeactivateClick() },

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,7 @@ import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Steps
+import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
 
@@ -48,12 +50,54 @@ fun HistoryScreen(
         modifier = modifier
             .fillMaxWidth()
     ) {
-        Text(
-            text = "History",
-            modifier = Modifier,
-            fontSize = MaterialTheme.typography.h4.fontSize,
-            fontWeight = FontWeight(300)
-        )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            var isDropDownOpen by remember {
+                mutableStateOf(false)
+            }
+            Text(
+                text = "History",
+                modifier = Modifier,
+                fontSize = MaterialTheme.typography.h4.fontSize,
+                fontWeight = FontWeight(300)
+            )
+
+            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
+                SimpleIconButton(
+                    modifier = Modifier,
+                    icon = Icons.Default.MoreVert,
+                    contentDescription = "Delete Drop Down"
+                ) {
+                    isDropDownOpen = true
+                }
+                Box() {
+                    DropdownMenu(
+                        modifier = Modifier,
+                        expanded = isDropDownOpen,
+                        onDismissRequest = { isDropDownOpen = false }) {
+                        Text(
+                            modifier = Modifier.clickable {
+                                isDropDownOpen = false
+                                ModalConfiguration.setModalConfig(
+                                    title = "Delete History Month",
+                                    content = "Do you want do delete data on the selected month?",
+                                    show = true,
+                                    onYesClickHandler = {
+                                        historyViewModel.deleteMonth(selectedMonth)
+                                        ModalConfiguration.clearModalConfig()
+                                    },
+                                    onNoClickHandler = {
+                                        ModalConfiguration.clearModalConfig()
+                                    }
+                                )
+                            }.padding(5.dp),
+                            text = "Delete Month"
+                        )
+
+                    }
+                }
+
+            }
+        }
         Text(
             text = "Pick Month and Year",
             modifier = Modifier.padding(top = 20.dp),
