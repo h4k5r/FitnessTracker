@@ -27,8 +27,11 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
     private var _selectedDateSteps = MutableStateFlow<List<Steps>>(emptyList())
     var selectedDateSteps = _selectedDateSteps.asStateFlow()
 
+    private var _allGoals = MutableStateFlow<List<Goal>>(emptyList())
+    var allGoals = _allGoals.asStateFlow();
 
     private var dateModel = mutableStateOf("")
+    private var historyGoal = mutableStateOf(Goal())
 
     init {
         val date = fetchCurrentDate()
@@ -36,6 +39,14 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         val month = date.split("/")[1]
         val year = date.split("/")[2]
         dateModel.value = date
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.getAllGoals().distinctUntilChanged().collect {
+                if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Goals")
+                }
+                _allGoals.value = it
+            }
+        }
         viewModelScope.launch(Dispatchers.IO) {
             repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
@@ -50,8 +61,10 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
                 .collect {
                     if (it.isNullOrEmpty()) {
                         Log.d("TAG", "No Steps data found on the given date")
-                        _currentSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
+                        _currentSteps.value =
+                            listOf(Steps(steps = 0, day = day, month = month, year = year))
+                        _selectedDateSteps.value =
+                            listOf(Steps(steps = 0, day = day, month = month, year = year))
                     } else {
                         _currentSteps.value = it
                         _selectedDateSteps.value = it
@@ -74,13 +87,21 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
                 .distinctUntilChanged()
                 .collect {
                     if (it.isNullOrEmpty()) {
-                        _selectedDateSteps.value = listOf(Steps(steps = 0, day = day, month = month, year = year))
+                        _selectedDateSteps.value =
+                            listOf(Steps(steps = 0, day = day, month = month, year = year))
                     } else {
-                        Log.d("TAG", "$it")
                         _selectedDateSteps.value = it
+                        _activeGoal.value = listOf(Goal(goalName = it[0].goalName, steps = it[0].target))
+                        setHistoryGoal(Goal(goalName = it[0].goalName, steps = it[0].target))
                     }
                 }
         }
+    }
+    fun getHistoryGoal():Goal {
+        return historyGoal.value
+    }
+    fun setHistoryGoal(goal: Goal) {
+        historyGoal.value = goal
     }
 
 
@@ -100,10 +121,24 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
     }
 
     fun insertSteps(steps: Steps) {
+        if (activeGoal.value.isNotEmpty()) {
+            steps.goalName = activeGoal.value[0].goalName
+            steps.target = activeGoal.value[0].steps
+        }
         viewModelScope.launch(Dispatchers.Main) {
             Log.d("TAG", "insertSteps: Executed ")
             repository.insertSteps(steps = steps)
         }
+    }
+
+    fun insertHistorySteps(steps: Steps) {
+        steps.goalName = historyGoal.value.goalName
+        steps.target = historyGoal.value.steps
+        viewModelScope.launch(Dispatchers.Main) {
+            Log.d("TAG", "insertHistorySteps: Executed ")
+            repository.insertSteps(steps = steps)
+        }
+
     }
 
 //    fun updateSteps(steps: Steps) {

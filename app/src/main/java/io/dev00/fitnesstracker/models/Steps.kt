@@ -21,14 +21,21 @@ data class Steps(
     var month: String,
 
     @ColumnInfo(name = "year")
-    var year: String
+    var year: String,
+
+    var goalName:String,
+
+    var target:Int
+
 ) {
     constructor() : this(
         id = null,
         steps = 0,
         day = fetchCurrentDate().split("/")[0],
         month = fetchCurrentDate().split("/")[1],
-        year = fetchCurrentDate().split("/")[2]
+        year = fetchCurrentDate().split("/")[2],
+        goalName = "",
+        target = 0
     )
 
     constructor(steps: Int, day: String, month: String, year: String) : this(
@@ -36,6 +43,18 @@ data class Steps(
         steps = steps,
         day = day,
         month = month,
-        year = year
+        year = year,
+        goalName = "",
+        target = 0
     )
+    constructor(steps: Int, day: String, month: String, year: String,goalName: String,target: Int) : this(
+        id = null,
+        steps = steps,
+        day = day,
+        month = month,
+        year = year,
+        goalName = goalName,
+        target = target
+    )
+
 }

@@ -1,10 +1,12 @@
 package io.dev00.fitnesstracker.screens
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,10 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavController
-import io.dev00.fitnesstracker.components.BackgroundCard
-import io.dev00.fitnesstracker.components.OutlinedIconInputField
-import io.dev00.fitnesstracker.components.TopBar
-import io.dev00.fitnesstracker.components.configuredDatePickerDialog
+import io.dev00.fitnesstracker.components.*
+import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.utils.fetchCurrentDate
@@ -63,6 +63,7 @@ fun TopCard(homeViewModel: HomeViewModel) {
 
     val activeGoal = homeViewModel.activeGoal.collectAsState().value
     val currentSteps = homeViewModel.currentSteps.collectAsState().value[0].steps
+    val isSameDate = fetchCurrentDate() == homeViewModel.getDate()
 
     BackgroundCard {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -90,16 +91,7 @@ fun TopCard(homeViewModel: HomeViewModel) {
                         )
                     })
                 }
-            }
-            if (activeGoal.isNotEmpty()) {
-                val activeGoal = activeGoal[0]
-                val target = activeGoal.steps
-                var progress: Float = 0f
-                if (currentSteps / target > 1) {
-                    progress = 1f
-                } else {
-                    progress = currentSteps.toFloat() / target
-                }
+            } else if (!activeGoal.isNullOrEmpty() && isSameDate) {
                 Column() {
                     Text(
                         text = buildAnnotatedString {
@@ -113,7 +105,7 @@ fun TopCard(homeViewModel: HomeViewModel) {
                             )
                             append(
                                 AnnotatedString(
-                                    activeGoal.goalName, spanStyle = SpanStyle(
+                                    activeGoal[0].goalName, spanStyle = SpanStyle(
                                         fontSize = MaterialTheme.typography.h5.fontSize,
                                         fontWeight = FontWeight(500)
                                     )
@@ -122,57 +114,203 @@ fun TopCard(homeViewModel: HomeViewModel) {
                         },
                     )
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(
-                        text = "Progress:",
-                        fontSize = MaterialTheme.typography.body1.fontSize,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Progress(currentSteps = currentSteps, activeGoal = activeGoal[0])
+                }
+            } else {
+                var selectedDaySteps = homeViewModel.selectedDateSteps.collectAsState().value[0]
+                var selectedDayGoal =
+                    Goal(goalName = selectedDaySteps.goalName, steps = selectedDaySteps.target)
+                var selectedDayGoalName by remember {
+                    mutableStateOf(selectedDayGoal.goalName.trim())
+                }
+                if (selectedDayGoalName.isEmpty()) {
+                    selectedDayGoalName = "No Active Goal"
+                }
+                if (selectedDayGoal.goalName.trim().isEmpty()) {
+                    val historyGoal = homeViewModel.getHistoryGoal()
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text(text = buildAnnotatedString {
-                            append(AnnotatedString("Walked : "))
-                            append(
-                                AnnotatedString(
-                                    currentSteps.toString(),
-                                    spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+                        Text(
+//                            text = "Set Goal: ${selectedDayGoalName}",
+                            text = buildAnnotatedString {
+                                append(
+                                    AnnotatedString(
+                                        "Set Goal: ", spanStyle = SpanStyle(
+                                            fontWeight = FontWeight(300),
+                                            fontSize = MaterialTheme.typography.h5.fontSize
+                                        )
+                                    )
                                 )
-                            )
-                            append(
-                                AnnotatedString(
-                                    text = " steps",
+                                append(
+                                    AnnotatedString(
+                                        selectedDayGoalName, spanStyle = SpanStyle(
+                                            fontWeight = FontWeight(500),
+                                            fontSize = MaterialTheme.typography.h5.fontSize
+                                        )
+                                    )
                                 )
-                            )
-                        }, fontSize = 13.sp)
-                        Text(text = buildAnnotatedString {
-                            append(AnnotatedString("Target : "))
-                            append(
-                                AnnotatedString(
-                                    activeGoal.steps.toString(),
-                                    spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
-                                )
-                            )
-                            append(
-                                AnnotatedString(
-                                    text = " steps",
-                                )
-                            )
-                        }, fontSize = 13.sp)
-                    }
-                    Spacer(modifier = Modifier.height(20.dp))
-                    BackgroundCard() {
-                        LinearProgressIndicator(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(10.dp),
-                            progress = progress
+                            },
                         )
+                        GoalsDropDown(homeViewModel = homeViewModel) {
+                            homeViewModel.setHistoryGoal(it)
+                            selectedDayGoalName = it.goalName
+                        }
                     }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row {
+                        Text(text = "Number of Steps : ")
+                        Text(text = buildAnnotatedString {
+                            append(
+                                AnnotatedString(
+                                    selectedDaySteps.steps.toString(),
+                                    spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+                                )
+                            )
+                            append(
+                                AnnotatedString(
+                                    text = " steps",
+                                )
+                            )
+                        })
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = buildAnnotatedString {
+                                append(
+                                    AnnotatedString(
+                                        "Active Goal : ", spanStyle = SpanStyle(
+                                            fontSize = MaterialTheme.typography.h5.fontSize,
+                                            fontWeight = FontWeight(300)
+                                        )
+                                    )
+                                )
+                                append(
+                                    AnnotatedString(
+                                        selectedDayGoalName, spanStyle = SpanStyle(
+                                            fontSize = MaterialTheme.typography.h5.fontSize,
+                                            fontWeight = FontWeight(500)
+                                        )
+                                    )
+                                )
+                            },
+                            fontSize = MaterialTheme.typography.h5.fontSize,
+                            fontWeight = FontWeight(500)
+                        )
+                        GoalsDropDown(homeViewModel = homeViewModel) {
+                            homeViewModel.setHistoryGoal(it)
+                            selectedDayGoalName = it.goalName
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Log.d("TAG", "TopCard: ${homeViewModel.getHistoryGoal()}")
+                    Progress(currentSteps = selectedDaySteps.steps, activeGoal = homeViewModel.getHistoryGoal())
                 }
             }
         }
+    }
+}
+
+@Composable
+fun GoalsDropDown(homeViewModel: HomeViewModel, onGoalSelected: (goal: Goal) -> Unit) {
+    var allGoals = homeViewModel.allGoals.collectAsState().value
+    var selectedGoalDropDown by remember {
+        mutableStateOf(false)
+    }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box() {
+            DropdownMenu(
+                modifier = Modifier
+                    .fillMaxHeight(0.3f)
+                    .padding(top = 5.dp),
+                expanded = selectedGoalDropDown,
+                onDismissRequest = { selectedGoalDropDown = false }) {
+                for (goal in allGoals) {
+                    Text(
+                        modifier = Modifier.clickable {
+                            selectedGoalDropDown = false
+                            onGoalSelected(goal)
+                        },
+                        text = goal.goalName
+                    )
+                }
+            }
+        }
+        SimpleIconButton(
+            modifier = Modifier,
+            icon = Icons.Default.ArrowDropDown,
+            contentDescription = "Goals Drop Down"
+        ) {
+            selectedGoalDropDown = true
+        }
+    }
+}
+
+@Composable
+fun Progress(currentSteps: Int, activeGoal: Goal) {
+    val progress: Float
+    val target = activeGoal.steps
+    if (target == 0) {
+        progress = 0f
+    } else if (currentSteps / target > 1) {
+        progress = 1f
+    } else {
+        progress = currentSteps.toFloat() / target
+    }
+    Text(
+        text = "Progress:",
+        fontSize = MaterialTheme.typography.body1.fontSize,
+        fontWeight = FontWeight.SemiBold
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = buildAnnotatedString {
+            append(AnnotatedString("Walked : "))
+            append(
+                AnnotatedString(
+                    currentSteps.toString(),
+                    spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+                )
+            )
+            append(
+                AnnotatedString(
+                    text = " steps",
+                )
+            )
+        }, fontSize = 13.sp)
+        Text(text = buildAnnotatedString {
+            append(AnnotatedString("Target : "))
+            append(
+                AnnotatedString(
+                    activeGoal.steps.toString(),
+                    spanStyle = SpanStyle(fontWeight = FontWeight.Bold)
+                )
+            )
+            append(
+                AnnotatedString(
+                    text = " steps",
+                )
+            )
+        }, fontSize = 13.sp)
+    }
+    Spacer(modifier = Modifier.height(20.dp))
+    BackgroundCard() {
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp),
+            progress = progress
+        )
     }
 }
 
@@ -181,6 +319,7 @@ fun TopCard(homeViewModel: HomeViewModel) {
 fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
     val currentDaySteps: Steps = homeViewModel.currentSteps.collectAsState().value[0]
     val selectedDaySteps: Steps = homeViewModel.selectedDateSteps.collectAsState().value[0]
+    val isSameDate = fetchCurrentDate() == homeViewModel.getDate()
     val context = LocalContext.current;
     var date = homeViewModel.getDate()
     val datePickerDialog = configuredDatePickerDialog(context = context) {
@@ -239,7 +378,6 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                     onClick = {
                         val selectedDate = homeViewModel.getDate()
                         if (selectedDate == fetchCurrentDate()) {
-                            Log.d("TAG", "BottomCard: ${currentDaySteps.toString()}")
                             currentDaySteps.steps += parsedValue
                             homeViewModel.insertSteps(currentDaySteps)
                             stringSteps.value = ""
@@ -249,10 +387,16 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                             navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
                         } else {
                             selectedDaySteps.steps += parsedValue
-                            homeViewModel.insertSteps(selectedDaySteps)
+                            if (isSameDate) {
+                                homeViewModel.insertSteps(selectedDaySteps)
+                            } else {
+                                homeViewModel.insertHistorySteps(steps = selectedDaySteps)
+                            }
                             stringSteps.value = ""
                             parsedValue = 0;
                             focusManager.clearFocus()
+                            navController.backQueue.removeLast()
+                            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
                         }
                     }, enabled = isValid
                 ) {

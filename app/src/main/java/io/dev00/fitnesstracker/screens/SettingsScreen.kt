@@ -2,10 +2,8 @@ package io.dev00.fitnesstracker.screens
 
 import android.util.Log
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -27,7 +25,7 @@ fun SettingsScreen(
     settingsViewModel: SettingsViewModel
 ) {
     val preferencesList = settingsViewModel.preferences.value
-    var editableState by remember {
+    var editableState = remember {
         mutableStateOf(true)
     }
     var init by remember {
@@ -41,7 +39,7 @@ fun SettingsScreen(
         val editable = preferencesList.find { it.name == "editable Goal" }
         if (editable != null) {
             editableGoal = editable
-            editableState = editable.value
+            editableState.value = editable.value
         }
     }
     var isDarkMode = isSystemInDarkTheme()
@@ -77,19 +75,57 @@ fun SettingsScreen(
             )
         }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(text = "Make Goals Editable")
-            Switch(checked = editableState, onCheckedChange = {
-                editableState = it
-                editableGoal.value = it
-                settingsViewModel.setPreference(editableGoal)
-            })
+        Column() {
+            SettingsItem(
+                settingsText = "Make Goals Editable",
+                editableState = editableState,
+                onCheckedChange = {
+                    editableState.value = it
+                    editableGoal.value = it
+                    settingsViewModel.setPreference(editableGoal)
+                })
+            SettingsItem(
+                settingsText = "Make Historical Recording",
+                editableState = editableState,
+                onCheckedChange = {
+//                    editableState.value = it
+//                    editableGoal.value = it
+//                    settingsViewModel.setPreference(editableGoal)
+                })
         }
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(20.dp),
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            Text(text = "Make Goals Editable")
+//            Switch(checked = editableState.value, onCheckedChange = {
+//                editableState.value = it
+//                editableGoal.value = it
+//                settingsViewModel.setPreference(editableGoal)
+//            })
+//        }
+    }
+}
+
+@Composable
+fun SettingsItem(
+    settingsText: String,
+    editableState: MutableState<Boolean>,
+    onCheckedChange: (changed: Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(text = settingsText)
+        Switch(checked = editableState.value, onCheckedChange = {
+            onCheckedChange(it)
+        })
     }
 }
