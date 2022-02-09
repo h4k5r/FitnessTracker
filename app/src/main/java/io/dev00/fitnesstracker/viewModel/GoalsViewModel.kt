@@ -78,4 +78,7 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
             repository.updateGoal(goal = goal)
         }
     }
+    fun removeGoalFromViewModel(goal: Goal) {
+        _inactiveGoalsList.value = inactiveGoals.value.filter { it == goal }
+    }
 }

@@ -19,14 +19,20 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
+import io.dev00.fitnesstracker.components.ModalConfiguration
 import io.dev00.fitnesstracker.components.SimpleIconButton
+import io.dev00.fitnesstracker.components.SnackBarConfig
 import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
-import io.dev00.fitnesstracker.navigation.ModalConfiguration
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun GoalsScreen(
@@ -34,13 +40,14 @@ fun GoalsScreen(
     navController: NavController,
     goalsViewModel: GoalsViewModel,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     val preferencesList = goalsViewModel.preferences.value
     val activeGoal = remember {
         goalsViewModel.activeGoal.value
     }
 
     val inactiveGoals = remember {
-        goalsViewModel.inactiveGoals.value
+        mutableListOf(*goalsViewModel.inactiveGoals.value.toTypedArray())
     }
 
     var editableGoal by remember {
@@ -114,23 +121,26 @@ fun GoalsScreen(
                                     }
                                     GoalCard(
                                         goal = goal,
-                                        hasActive = activeGoal.isNotEmpty(),
                                         onDeleteClick = {
-                                            ModalConfiguration.setModalConfig(
-                                                title = "Delete Goal",
-                                                content = "Do you want do delete goal: ${goal.goalName}?",
-                                                onYesClickHandler = {
-                                                    goalsViewModel.deleteGoal(goal = goal)
-                                                    ModalConfiguration.clearModalConfig()
+                                            var deleted = goal
+                                            val deleteJob = coroutineScope.launch(Dispatchers.Main) {
+                                                goalsViewModel.deleteGoal(goal = goal)
+                                                navController.backQueue.removeLast()
+                                                navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                                delay(2000)
+                                                SnackBarConfig.clearSnackBarConfig()
+                                            }
+                                            SnackBarConfig.setSnackBarConfig(
+                                                content = "Undo Goal Delete",
+                                                show = true,
+                                                buttonText = "Undo",
+                                                buttonAction = {
+                                                    deleteJob.cancel()
+                                                    goalsViewModel.addGoal(deleted)
+                                                    SnackBarConfig.clearSnackBarConfig()
                                                     navController.backQueue.removeLast()
                                                     navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
-                                                },
-                                                onNoClickHandler = {
-                                                    ModalConfiguration.clearModalConfig()
-
-                                                },
-                                                show = true
-                                            )
+                                                })
                                         },
                                         onEditClick = {
                                             navController.navigate(route = FitnessTrackerScreens.EditGoalScreen.name + "/${goal.id}")
@@ -152,7 +162,6 @@ fun GoalsScreen(
 fun GoalCard(
     goal: Goal,
     isActive: Boolean = false,
-    hasActive: Boolean = false,
     isEditable: Boolean,
     onDeleteClick: () -> Unit = {},
     onEditClick: () -> Unit = {},

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -268,6 +269,14 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
     } else {
         progress = currentSteps.toFloat() / target
     }
+    val progressBarColor: Color
+    if (progress == 1f) {
+        progressBarColor = Color.Green
+    } else if (progress < 0.5f) {
+        progressBarColor = Color.Red
+    } else  {
+        progressBarColor = Color.Yellow
+    }
     Text(
         text = "Progress:",
         fontSize = MaterialTheme.typography.body1.fontSize,
@@ -313,7 +322,8 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp),
-            progress = progress
+            progress = progress,
+            color = progressBarColor
         )
     }
 }

@@ -24,11 +24,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import java.util.*
@@ -97,10 +101,12 @@ fun TopBar(navController: NavController,content: @Composable () -> Unit = {}) {
                     expanded = isDropDownOpen,
                     onDismissRequest = { isDropDownOpen = false }) {
                     Text(
-                        modifier = Modifier.clickable {
-                            isDropDownOpen = false
-                            navController.navigate(route = FitnessTrackerScreens.SettingsScreen.name)
-                        }.padding(5.dp),
+                        modifier = Modifier
+                            .clickable {
+                                isDropDownOpen = false
+                                navController.navigate(route = FitnessTrackerScreens.SettingsScreen.name)
+                            }
+                            .padding(5.dp),
                         text = "Settings"
                     )
 
@@ -312,4 +318,122 @@ fun configuredDatePickerDialog(context: Context, onDatePicked: (String) -> Unit)
         }, year, month, day
     )
     return datePickerDialog
+}
+
+@Composable
+fun YesOrNoModal(
+    title: String,
+    content: String,
+    onYesClickHandler: () -> Unit,
+    onNoClickHandler: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .background(Color(0x80000000))
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .zIndex(1000f),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        BackgroundCard(modifier = Modifier.fillMaxWidth(0.9f)) {
+            Column(
+                modifier = Modifier.padding(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = title,
+                    textAlign = TextAlign.Center,
+                    fontSize = MaterialTheme.typography.h5.fontSize
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(text = content, textAlign = TextAlign.Center)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(0.4f)
+                        .padding(top = 20.dp), horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(
+                        onClick = { onYesClickHandler() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.error)
+                    ) {
+                        Text(text = "Yes")
+                    }
+                    Button(
+                        onClick = { onNoClickHandler() },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.secondaryVariant)
+                    ) {
+                        Text(text = "No")
+                    }
+                }
+            }
+        }
+    }
+}
+
+object ModalConfiguration {
+    var title = mutableStateOf("")
+    var content = mutableStateOf("")
+    var onYesClickHandler = mutableStateOf({})
+    var onNoClickHandler = mutableStateOf({})
+    var show = mutableStateOf(false)
+
+    fun setModalConfig(
+        title: String,
+        content: String,
+        onYesClickHandler: () -> Unit,
+        onNoClickHandler: () -> Unit,
+        show: Boolean
+    ) {
+        this.show.value = show
+        this.title.value = title
+        this.content.value = content
+        this.onNoClickHandler.value = onNoClickHandler
+        this.onYesClickHandler.value = onYesClickHandler
+    }
+
+    fun clearModalConfig() {
+        this.show.value = false
+        this.title.value = ""
+        this.content.value = ""
+        this.onNoClickHandler.value = {}
+        this.onYesClickHandler.value = {}
+    }
+}
+
+
+@Composable
+fun ConfiguredSnackBar(content: String,buttonText: String,buttonAction: () -> Unit) {
+    Snackbar(modifier = Modifier.zIndex(1f), action = {
+        Button(onClick = { buttonAction() }) {
+            Text(
+                text = AnnotatedString(
+                    buttonText,
+                    SpanStyle(fontWeight = FontWeight.Bold)
+                )
+            )
+        }
+    }) {
+        Text(text = content)
+    }
+}
+object SnackBarConfig {
+    var content = mutableStateOf("")
+    var buttonText = mutableStateOf("")
+    var buttonAction = mutableStateOf({})
+    var show= mutableStateOf(false)
+
+    fun setSnackBarConfig(content: String,buttonText:String,buttonAction: () -> Unit,show: Boolean) {
+        this.content.value = content
+        this.buttonText.value = buttonText
+        this.buttonAction.value = buttonAction
+        this.show.value = show
+    }
+    fun clearSnackBarConfig() {
+        this.content.value = ""
+        this.buttonText.value = ""
+        this.buttonAction.value = {}
+        this.show.value = false
+    }
 }
