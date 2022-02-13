@@ -77,7 +77,7 @@ fun FilledCircularIconButton(
 }
 
 @Composable
-fun TopBar(navController: NavController,content: @Composable () -> Unit = {}) {
+fun TopBar(navController: NavController, content: @Composable () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -237,15 +237,18 @@ fun OutlinedIconInputField(
     label: String,
     enabled: Boolean,
     isSingleLine: Boolean,
+    error:Boolean = false,
     keyBoardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Done,
-    onAction: KeyboardActions = KeyboardActions.Default
+    onAction: KeyboardActions = KeyboardActions.Default,
+    onValueChange: (content:String) -> Unit = {}
 ) {
     OutlinedTextField(
         modifier = modifier,
         value = valueState.value,
         onValueChange = {
             valueState.value = it
+            onValueChange(it);
         },
         label = { Text(text = label) },
         leadingIcon = {
@@ -258,7 +261,8 @@ fun OutlinedIconInputField(
         textStyle = MaterialTheme.typography.body1,
         enabled = enabled,
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = imeAction),
-        keyboardActions = onAction
+        keyboardActions = onAction,
+        isError = error
     )
 }
 
@@ -271,13 +275,15 @@ fun OutlinedInputField(
     isSingleLine: Boolean,
     keyBoardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Done,
-    onAction: KeyboardActions = KeyboardActions.Default
+    onAction: KeyboardActions = KeyboardActions.Default,
+    onValueChange: (content:String) -> Unit = {}
 ) {
     OutlinedTextField(
         modifier = modifier,
         value = valueState.value,
         onValueChange = {
             valueState.value = it
+            onValueChange(it);
         },
         label = { Text(text = label) },
         singleLine = isSingleLine,
@@ -404,36 +410,52 @@ object ModalConfiguration {
 
 
 @Composable
-fun ConfiguredSnackBar(content: String,buttonText: String,buttonAction: () -> Unit) {
-    Snackbar(modifier = Modifier.zIndex(1f), action = {
-        Button(onClick = { buttonAction() }) {
-            Text(
-                text = AnnotatedString(
-                    buttonText,
-                    SpanStyle(fontWeight = FontWeight.Bold)
-                )
-            )
+fun ConfiguredSnackBar(content: String, buttonText: String, buttonAction: () -> Unit) {
+    Snackbar(
+        modifier = Modifier.zIndex(1f),
+        action = {
+            if (SnackBarConfig.showButton.value) {
+                Button(onClick = { buttonAction() }) {
+                    Text(
+                        text = AnnotatedString(
+                            buttonText,
+                            SpanStyle(fontWeight = FontWeight.Bold)
+                        )
+                    )
+                }
+            }
         }
-    }) {
+    ) {
         Text(text = content)
     }
 }
+
 object SnackBarConfig {
     var content = mutableStateOf("")
     var buttonText = mutableStateOf("")
     var buttonAction = mutableStateOf({})
-    var show= mutableStateOf(false)
+    var show = mutableStateOf(false)
+    var showButton = mutableStateOf(true)
 
-    fun setSnackBarConfig(content: String,buttonText:String,buttonAction: () -> Unit,show: Boolean) {
+    fun setSnackBarConfig(
+        content: String,
+        buttonText: String = "",
+        buttonAction: () -> Unit = {},
+        show: Boolean,
+        showButton: Boolean
+    ) {
         this.content.value = content
         this.buttonText.value = buttonText
         this.buttonAction.value = buttonAction
         this.show.value = show
+        this.showButton.value = showButton
     }
+
     fun clearSnackBarConfig() {
         this.content.value = ""
         this.buttonText.value = ""
         this.buttonAction.value = {}
         this.show.value = false
+        this.showButton.value = true
     }
 }

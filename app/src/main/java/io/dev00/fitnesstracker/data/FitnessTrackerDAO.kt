@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface FitnessTrackerDAO {
+    @Query("SELECT * FROM goals where goal_name=:name")
+    fun getGoalByName(name:String):Flow<List<Goal>>
+
     @Query("SELECT * from goals")
     fun getGoals(): Flow<List<Goal>>
 

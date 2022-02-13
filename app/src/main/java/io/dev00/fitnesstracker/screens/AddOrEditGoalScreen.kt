@@ -1,9 +1,6 @@
 package io.dev00.fitnesstracker.screens
 
-import android.util.Log
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -20,15 +17,17 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
-import io.dev00.fitnesstracker.components.CheckBoxWithText
 import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.components.OutlinedInputField
+import io.dev00.fitnesstracker.components.SnackBarConfig
 import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.viewModel.EditGoalViewModel
 import io.dev00.fitnesstracker.viewModel.GoalsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @ExperimentalComposeUiApi
 @Composable
@@ -40,6 +39,8 @@ fun AddOrEditGoalScreen(
     goalsViewModel: GoalsViewModel,
     editGoalViewModel: EditGoalViewModel,
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
     var isInitial by remember {
         mutableStateOf(true)
     }
@@ -48,15 +49,21 @@ fun AddOrEditGoalScreen(
         mutableStateOf("")
     }
     val isNamevalid = goalName.value.trim().isNotEmpty()
+    var isNameTouched by remember {
+        mutableStateOf(false)
+    }
 
     var goalSteps = remember {
         mutableStateOf("")
     }
     val isStepsValid = goalSteps.value.trim().isNotEmpty() && goalSteps.value.isDigitsOnly()
+    var isStepsTouched by remember {
+        mutableStateOf(false)
+    }
     var isbuttonEnabled = isNamevalid && isStepsValid
 
 
-    var toBeSavedGoal:Goal = Goal()
+    var toBeSavedGoal: Goal = Goal()
     if (!isAdd) {
         toBeSavedGoal = editGoalViewModel.getGoalById(id = goalId)
     }
@@ -80,20 +87,30 @@ fun AddOrEditGoalScreen(
         buttonAction = {
             //Todo Create Goal Action
             if (isNamevalid && isStepsValid) {
+                keyboardController?.hide()
                 goalsViewModel.addGoal(
-                    Goal(
+                    goal = Goal(
                         goalName = goalName.value,
                         steps = goalSteps.value.toInt()
-                    )
+                    ),
+                    successCallback = {
+                        navController.popBackStack()
+                    },
+                    failureCallback = {
+                        coroutineScope.launch(Dispatchers.Main) {
+                            SnackBarConfig.setSnackBarConfig(content = "Goal Exists", show = true, showButton = false)
+                            delay(2000)
+                            SnackBarConfig.clearSnackBarConfig()
+                        }
+                    }
                 )
-                navController.popBackStack()
             }
         }
     } else {
         screenHeading = "Edit Goal"
         buttonText = "Save"
         buttonAction = {
-            if(isNamevalid && isStepsValid) {
+            if (isNamevalid && isStepsValid) {
                 toBeSavedGoal.goalName = goalName.value
                 toBeSavedGoal.steps = goalSteps.value.toInt()
                 editGoalViewModel.insertGoal(toBeSavedGoal)
@@ -101,7 +118,6 @@ fun AddOrEditGoalScreen(
             }
         }
     }
-    val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     Scaffold(modifier = modifier,
         topBar = {
@@ -145,8 +161,16 @@ fun AddOrEditGoalScreen(
                             if (!isNamevalid) return@KeyboardActions
                             keyboardController?.hide()
                             focusManager.moveFocus(FocusDirection.Down)
+                        },
+                        onValueChange = {
+                            isNameTouched = true
                         }
                     )
+                    if (!isNamevalid && isNameTouched) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(text = "Enter Valid Name" )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                     OutlinedInputField(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -160,8 +184,16 @@ fun AddOrEditGoalScreen(
                         onAction = KeyboardActions {
                             if (!isStepsValid) return@KeyboardActions
                             keyboardController?.hide()
+                        },
+                        onValueChange = {
+                            isStepsTouched = true
                         }
                     )
+                    if (!isStepsValid && isStepsTouched) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(text = "Enter Valid Name" )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                     Button(
                         modifier = Modifier.fillMaxWidth(),
                         onClick = buttonAction,

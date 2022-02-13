@@ -334,6 +334,13 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
 @Composable
 fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
     val preferencesList = homeViewModel.preferences.collectAsState().value
+    val currentDaySteps: Steps = homeViewModel.currentSteps.collectAsState().value[0]
+    val selectedDaySteps: Steps = homeViewModel.selectedDateSteps.collectAsState().value[0]
+    val isSameDate = fetchCurrentDate() == homeViewModel.getDate()
+    var date = homeViewModel.getDate()
+
+    val context = LocalContext.current;
+
     var historicalEditing by remember {
         mutableStateOf(Preference(name = "historical editing", value = true))
     }
@@ -341,12 +348,11 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
     if(historical != null) {
         historicalEditing = historical
     }
+    var isTouched by remember {
+        mutableStateOf(false)
+    }
 
-    val currentDaySteps: Steps = homeViewModel.currentSteps.collectAsState().value[0]
-    val selectedDaySteps: Steps = homeViewModel.selectedDateSteps.collectAsState().value[0]
-    val isSameDate = fetchCurrentDate() == homeViewModel.getDate()
-    val context = LocalContext.current;
-    var date = homeViewModel.getDate()
+
     val datePickerDialog = configuredDatePickerDialog(context = context) {
         homeViewModel.setDate(it)
     }
@@ -397,8 +403,15 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                     onAction = KeyboardActions {
                         if (!isValid) return@KeyboardActions
                         keyboardController?.hide()
-                    }
+                    },
+                    onValueChange = {
+                        isTouched = true
+                    },
                 )
+                if (!isValid && isTouched) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(text = "Enter Valid Number" )
+                }
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     modifier = Modifier.fillMaxWidth(),

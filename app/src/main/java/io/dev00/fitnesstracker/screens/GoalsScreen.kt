@@ -140,7 +140,7 @@ fun GoalsScreen(
                                                     SnackBarConfig.clearSnackBarConfig()
                                                     navController.backQueue.removeLast()
                                                     navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
-                                                })
+                                                }, showButton = true)
                                         },
                                         onEditClick = {
                                             navController.navigate(route = FitnessTrackerScreens.EditGoalScreen.name + "/${goal.id}")

@@ -53,9 +53,26 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
 
     }
 
-    fun addGoal(goal: Goal) {
-        viewModelScope.launch {
-            repository.insertGoal(goal = goal)
+    suspend fun findGoalByName(name: String,callbackFunction:(goals:List<Goal>) -> Unit = {}) {
+        repository.getGoalByName(name = name).distinctUntilChanged().collect {
+            callbackFunction(it)
+        }
+    }
+
+    fun addGoal(goal: Goal,successCallback:() -> Unit = {},failureCallback: () -> Unit = {}) {
+        viewModelScope.launch(Dispatchers.IO) {
+            findGoalByName(name = goal.goalName, callbackFunction = {
+                if (it.isEmpty()) {
+                    Log.d("TAG", "addGoal: ${it.size}")
+                    Log.d("TAG", "addGoal: $goal added")
+                    viewModelScope.launch {
+                        repository.insertGoal(goal = goal)
+                        successCallback();
+                    }
+                } else {
+                    failureCallback()
+                }
+            })
         }
     }
 
@@ -78,6 +95,7 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
             repository.updateGoal(goal = goal)
         }
     }
+
     fun removeGoalFromViewModel(goal: Goal) {
         _inactiveGoalsList.value = inactiveGoals.value.filter { it == goal }
     }
