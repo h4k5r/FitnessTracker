@@ -1,5 +1,6 @@
 package io.dev00.fitnesstracker.screens
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
@@ -119,6 +120,13 @@ fun AddOrEditGoalScreen(
         }
     }
     val focusManager = LocalFocusManager.current
+    var isDarkMode = isSystemInDarkTheme()
+    var buttonColor = Color.Black
+    var arrowColor = Color.White
+    if (isDarkMode) {
+        buttonColor = Color.White
+        arrowColor = Color.Black
+    }
     Scaffold(modifier = modifier,
         topBar = {
             TopAppBar(
@@ -126,7 +134,8 @@ fun AddOrEditGoalScreen(
                 content = {
                     FilledCircularIconButton(
                         icon = Icons.Default.ArrowBack,
-                        backgroundColor = Color.Black
+                        backgroundColor = buttonColor,
+                        arrowColor = arrowColor
                     ) {
                         navController.popBackStack()
                     }
@@ -191,7 +200,7 @@ fun AddOrEditGoalScreen(
                     )
                     if (!isStepsValid && isStepsTouched) {
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text(text = "Enter Valid Name" )
+                        Text(text = "Enter Valid Steps" )
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                     Button(
