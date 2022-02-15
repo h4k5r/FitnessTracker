@@ -14,9 +14,8 @@ import javax.inject.Inject
 
 
 class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO: FitnessTrackerDAO) {
-    fun  getGoalByName(name:String):Flow<List<Goal>> {
-        return fitnessTrackerDAO.getGoalByName(name = name).flowOn(Dispatchers.IO).conflate()
-    }
+    fun  getGoalByName(name:String):List<Goal> =
+        fitnessTrackerDAO.getGoalByName(name = name)
     suspend fun insertGoal(goal: Goal) {
         fitnessTrackerDAO.insertGoal(goal = goal)
     }
