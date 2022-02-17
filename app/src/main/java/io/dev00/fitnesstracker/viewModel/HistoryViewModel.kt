@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.time.Year
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,9 +58,9 @@ class HistoryViewModel @Inject constructor(private val repository: FitnessTracke
         }
     }
 
-    fun deleteMonth(month:String) {
+    fun deleteMonth(month:String,year: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.deleteMonth(month = month)
+            repository.deleteMonth(month = month, year = year);
         }
     }
 

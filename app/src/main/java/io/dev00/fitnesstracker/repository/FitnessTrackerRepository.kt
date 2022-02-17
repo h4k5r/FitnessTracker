@@ -51,7 +51,7 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
 
     suspend fun deleteSteps(steps: Steps) = fitnessTrackerDAO.deleteSteps(steps = steps)
 
-    suspend fun deleteMonth(month: String) = fitnessTrackerDAO.deleteAllStepsInAMonth(month = month)
+    suspend fun deleteMonth(month: String,year: String) = fitnessTrackerDAO.deleteAllStepsInAMonth(month = month, year = year)
 
     suspend fun getPreferences(): Flow<List<Preference>> =
         fitnessTrackerDAO.getPreferences()

@@ -91,7 +91,7 @@ fun HistoryScreen(
                                             content = "Do you want do delete data on the selected month?",
                                             show = true,
                                             onYesClickHandler = {
-                                                historyViewModel.deleteMonth(selectedMonth)
+                                                historyViewModel.deleteMonth(month = selectedMonth, year = selectedYear)
                                                 ModalConfiguration.clearModalConfig()
                                             },
                                             onNoClickHandler = {
