@@ -56,6 +56,9 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
             val found = repository.getGoalByName(goal.goalName)
             if (found.isEmpty()) {
                 repository.insertGoal(goal = goal)
+                viewModelScope.launch(Dispatchers.Main) {
+                    successCallback()
+                }
                 Log.d("TAG", "addGoal: empty")
             } else {
                 failureCallback()

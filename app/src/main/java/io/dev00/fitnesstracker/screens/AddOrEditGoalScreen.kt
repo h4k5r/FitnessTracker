@@ -94,6 +94,9 @@ fun AddOrEditGoalScreen(
                         goalName = goalName.value,
                         steps = goalSteps.value.toInt()
                     ),
+                    successCallback = {
+                        navController.popBackStack()
+                    },
                     failureCallback = {
                         SnackBarConfig.setSnackBarConfig(show = true, content = "Goal Already Exists", showButton = false)
                         coroutineScope.launch(Dispatchers.IO) {
@@ -104,7 +107,6 @@ fun AddOrEditGoalScreen(
                         }
                     }
                 )
-                navController.popBackStack()
             }
         }
     } else {

@@ -21,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -172,7 +173,7 @@ fun BottomNavBar(
                 modifier = modifier
                     .clip(shape = CircleShape)
                     .background(Color.Transparent)
-                    .padding(top = 5.dp, bottom = 5.dp),
+                    .padding(top = 10.dp, bottom = 10.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 Icon(
@@ -183,7 +184,7 @@ fun BottomNavBar(
                             navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
                             activeScreen.value = FitnessTrackerScreens.HomeScreen.name
                         }
-                    },
+                    }.scale(1.2f),
                     tint = homeIconTint
                 )
                 Icon(
@@ -194,7 +195,7 @@ fun BottomNavBar(
                             navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                             activeScreen.value = FitnessTrackerScreens.GoalsScreen.name
                         }
-                    },
+                    }.scale(1.2f),
                     tint = goalIconTint
                 )
                 Icon(
@@ -205,7 +206,7 @@ fun BottomNavBar(
                             navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
                             activeScreen.value = FitnessTrackerScreens.HistoryScreen.name
                         }
-                    },
+                    }.scale(1.2f),
                     tint = historyIconTint
                 )
             }
