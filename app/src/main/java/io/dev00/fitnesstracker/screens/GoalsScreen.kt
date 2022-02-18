@@ -39,9 +39,7 @@ fun GoalsScreen(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val preferencesList = goalsViewModel.preferences.value
-    val activeGoal = remember {
-        goalsViewModel.activeGoal.value
-    }
+    val activeGoal = goalsViewModel.activeGoal.collectAsState().value
 //    var deleted by remember {
 //        mutableStateOf(Goal())
 //    }
@@ -96,8 +94,6 @@ fun GoalsScreen(
                                     activeGoal[0],
                                     isActive = activeGoal.isNotEmpty(),
                                     onDeactivateClick = {
-                                        navController.backQueue.removeLast()
-                                        navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                         goalsViewModel.deactivateGoal(activeGoal[0])
                                     }, isEditable = false
                                 )
@@ -110,7 +106,9 @@ fun GoalsScreen(
                                 fontSize = MaterialTheme.typography.h5.fontSize,
                                 fontWeight = FontWeight(300)
                             )
-
+                            if (inactiveGoals.value.isEmpty()) {
+                                Text(text = "No Inactive Goals")
+                            }
                             LazyColumn(modifier = Modifier.padding(bottom = 20.dp)) {
                                 items(inactiveGoals.value) { goal ->
                                     val onActivateClick = {
@@ -118,8 +116,6 @@ fun GoalsScreen(
                                             goalsViewModel.deactivateGoal(activeGoal[0])
                                         }
                                         goalsViewModel.activateGoal(goal = goal)
-                                        navController.backQueue.removeLast()
-                                        navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
                                     }
                                     GoalCard(
                                         goal = goal,
