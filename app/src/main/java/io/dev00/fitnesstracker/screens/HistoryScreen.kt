@@ -25,13 +25,16 @@ import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.ModalConfiguration
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.models.Steps
+import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
+import io.dev00.fitnesstracker.viewModel.HomeViewModel
 
 @Composable
 fun HistoryScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     historyViewModel: HistoryViewModel,
+    homeViewModel: HomeViewModel
 ) {
     var selectedMonth by remember {
         mutableStateOf(historyViewModel.getMonthAndYear().split("/")[0])
@@ -91,7 +94,10 @@ fun HistoryScreen(
                                             content = "Do you want do delete data on the selected month?",
                                             show = true,
                                             onYesClickHandler = {
-                                                historyViewModel.deleteMonth(month = selectedMonth, year = selectedYear)
+                                                historyViewModel.deleteMonth(
+                                                    month = selectedMonth,
+                                                    year = selectedYear
+                                                )
                                                 ModalConfiguration.clearModalConfig()
                                             },
                                             onNoClickHandler = {
@@ -128,11 +134,13 @@ fun HistoryScreen(
                             onDismissRequest = { selectMonthDropDown = false }) {
                             for (i in 1..12) {
                                 Text(
-                                    modifier = Modifier.clickable {
-                                        selectedMonth = i.toString()
-                                        historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                        selectMonthDropDown = false
-                                    }.padding(5.dp),
+                                    modifier = Modifier
+                                        .clickable {
+                                            selectedMonth = i.toString()
+                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                            selectMonthDropDown = false
+                                        }
+                                        .padding(5.dp),
                                     text = i.toString()
                                 )
                             }
@@ -159,11 +167,13 @@ fun HistoryScreen(
                             onDismissRequest = { selectYearDropDown = false }) {
                             for (i in 2000..2100) {
                                 Text(
-                                    modifier = Modifier.clickable {
-                                        selectedYear = i.toString()
-                                        historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                        selectYearDropDown = false
-                                    }.padding(5.dp),
+                                    modifier = Modifier
+                                        .clickable {
+                                            selectedYear = i.toString()
+                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                            selectYearDropDown = false
+                                        }
+                                        .padding(5.dp),
                                     text = i.toString()
                                 )
                             }
@@ -182,7 +192,7 @@ fun HistoryScreen(
             LazyColumn(modifier = Modifier.padding(top = 20.dp)) {
                 items(steps) {
                     StepHistoryItem(
-                        it
+                        step = it
 //                        ,onDeleteClick = {
 //                            ModalConfiguration.setModalConfig(
 //                                title = "Delete History",
@@ -197,6 +207,8 @@ fun HistoryScreen(
 //                                }
 //                            )
 //                    }
+                    , homeViewModel = homeViewModel,
+                        navController = navController
                     )
                 }
             }
@@ -207,7 +219,9 @@ fun HistoryScreen(
 
 @Composable
 fun StepHistoryItem(
-    step: Steps = Steps()
+    step: Steps = Steps(),
+    homeViewModel: HomeViewModel,
+    navController: NavController
 //                    , onDeleteClick: () -> Unit
 ) {
     val progress: Float
@@ -230,13 +244,19 @@ fun StepHistoryItem(
     }
     BackgroundCard(
         elevation = 1,
-        modifier = Modifier.padding(bottom = 5.dp, start = 1.dp, end = 1.dp, top = 1.dp)
+        modifier = Modifier
+            .padding(bottom = 5.dp, start = 1.dp, end = 1.dp, top = 1.dp)
+            .clickable {
+//            "${day}/${month + 1}/${year}"
+                homeViewModel.setDate("${step.day}/${step.month}/${step.year}")
+                navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
+            }
     ) {
         Column(modifier = Modifier.padding(start = 5.dp, end = 5.dp, top = 5.dp, bottom = 5.dp)) {
             Box() {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 10.dp)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
                 ) {
 //                    Icon(
 //                        modifier = Modifier.size(40.dp),
@@ -257,12 +277,20 @@ fun StepHistoryItem(
 //                                Text(text = "Steps: ")
 //                                Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
 //                            }
-                            Row() {
-                                Text(text = "Date: ")
-                                Text(
-                                    text = "${step.day}/${step.month}/${step.year}",
-                                    fontWeight = FontWeight.Bold
-                                )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row() {
+                                    Text(text = "Date: ")
+                                    Text(
+                                        text = "${step.day}/${step.month}/${step.year}",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Row() {
+                                    Text(text = "Goal Name: ")
+                                    Text(
+                                        text = step.goalName,
+                                        fontWeight = FontWeight.Bold)
+                                }
                             }
 
                         }

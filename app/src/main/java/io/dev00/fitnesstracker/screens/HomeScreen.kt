@@ -210,7 +210,6 @@ fun TopCard(homeViewModel: HomeViewModel) {
                         }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
-                    Log.d("TAG", "TopCard: ${homeViewModel.getHistoryGoal()}")
                     Progress(
                         currentSteps = selectedDaySteps.steps,
                         activeGoal = homeViewModel.getHistoryGoal()

@@ -101,6 +101,7 @@ fun FitnessTrackerNavigation() {
                             modifier = Modifier.padding(padding),
                             navController = navController,
                             historyViewModel = historyViewModel,
+                            homeViewModel = homeViewModel
                         )
                     }
                     composable(route = FitnessTrackerScreens.AddGoalScreen.name) {

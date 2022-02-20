@@ -52,7 +52,6 @@ class HistoryViewModel @Inject constructor(private val repository: FitnessTracke
             repository.getStepsByMonthAndYear(month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
-                        Log.d("TAG", "$it")
                         _selectedMonthSteps.value = it
                 }
         }
