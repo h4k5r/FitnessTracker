@@ -24,6 +24,7 @@ class EditGoalViewModel @Inject constructor(private val repository: FitnessTrack
         viewModelScope.launch(Dispatchers.IO) {
             repository.getInactiveGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Inactive Goals")
                 }
                 _inactiveGoalsList.value = it
             }

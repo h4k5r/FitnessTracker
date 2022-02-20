@@ -61,6 +61,7 @@ fun SettingsScreen(
         buttonColor = Color.White
         arrowColor = Color.Black
     }
+    Log.d("TAG", "SettingsScreen: ${editableState}")
     Scaffold(modifier = modifier,
         topBar = {
             TopAppBar(

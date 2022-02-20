@@ -51,6 +51,7 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Goals")
                 }
                 _allGoals.value = it
             }
@@ -58,6 +59,7 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         viewModelScope.launch(Dispatchers.IO) {
             repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Active Goal")
                 }
                 _activeGoal.value = it
             }
@@ -67,6 +69,7 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
                 .distinctUntilChanged()
                 .collect {
                     if (it.isNullOrEmpty()) {
+                        Log.d("TAG", "No Steps data found on the given date")
                         _currentSteps.value =
                             listOf(Steps(steps = 0, day = day, month = month, year = year))
                         _selectedDateSteps.value =
@@ -87,9 +90,8 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         val day = date.split("/")[0]
         val month = date.split("/")[1]
         val year = date.split("/")[2]
-
         dateModel.value = date
-        viewModelScope.launch(Dispatchers.Main) {
+        viewModelScope.launch(Dispatchers.IO) {
             repository.getStepByDate(day = day, month = month, year = year)
                 .distinctUntilChanged()
                 .collect {
@@ -101,7 +103,6 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
                         _activeGoal.value = listOf(Goal(goalName = it[0].goalName, steps = it[0].target))
                         setHistoryGoal(Goal(goalName = it[0].goalName, steps = it[0].target))
                     }
-
                 }
         }
     }
@@ -134,6 +135,7 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
             steps.target = activeGoal.value[0].steps
         }
         viewModelScope.launch(Dispatchers.Main) {
+            Log.d("TAG", "insertSteps: Executed ")
             repository.insertSteps(steps = steps)
         }
     }
@@ -142,6 +144,7 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         steps.goalName = historyGoal.value.goalName
         steps.target = historyGoal.value.steps
         viewModelScope.launch(Dispatchers.Main) {
+            Log.d("TAG", "insertHistorySteps: Executed ")
             repository.insertSteps(steps = steps)
         }
 

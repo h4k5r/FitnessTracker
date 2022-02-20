@@ -29,6 +29,7 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
         viewModelScope.launch(Dispatchers.IO) {
             repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Active Goal")
                 }
                 _activeGoal.value = it
             }
@@ -36,6 +37,7 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
         viewModelScope.launch(Dispatchers.IO) {
             repository.getInactiveGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
+                    Log.d("TAG", "No Inactive Goals")
                 }
                 _inactiveGoalsList.value = it
             }
@@ -57,15 +59,19 @@ class GoalsViewModel @Inject constructor(private val repository: FitnessTrackerR
                 viewModelScope.launch(Dispatchers.Main) {
                     successCallback()
                 }
+                Log.d("TAG", "addGoal: empty")
             } else {
                 failureCallback()
+                Log.d("TAG", "addGoal: found")
             }
         }
     }
 
     fun deleteGoal(goal: Goal) {
+        Log.d("TAG", "deleteGoal: Delete called")
 
         viewModelScope.launch(Dispatchers.Main) {
+            Log.d("TAG", "deleteGoal: Delete called")
             repository.deleteGoal(goal = goal)
         }
     }
