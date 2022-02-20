@@ -91,7 +91,10 @@ fun HistoryScreen(
                                             content = "Do you want do delete data on the selected month?",
                                             show = true,
                                             onYesClickHandler = {
-                                                historyViewModel.deleteMonth(month = selectedMonth, year = selectedYear)
+                                                historyViewModel.deleteMonth(
+                                                    month = selectedMonth,
+                                                    year = selectedYear
+                                                )
                                                 ModalConfiguration.clearModalConfig()
                                             },
                                             onNoClickHandler = {
@@ -128,11 +131,13 @@ fun HistoryScreen(
                             onDismissRequest = { selectMonthDropDown = false }) {
                             for (i in 1..12) {
                                 Text(
-                                    modifier = Modifier.clickable {
-                                        selectedMonth = i.toString()
-                                        historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                        selectMonthDropDown = false
-                                    }.padding(5.dp),
+                                    modifier = Modifier
+                                        .clickable {
+                                            selectedMonth = i.toString()
+                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                            selectMonthDropDown = false
+                                        }
+                                        .padding(5.dp),
                                     text = i.toString()
                                 )
                             }
@@ -159,11 +164,13 @@ fun HistoryScreen(
                             onDismissRequest = { selectYearDropDown = false }) {
                             for (i in 2000..2100) {
                                 Text(
-                                    modifier = Modifier.clickable {
-                                        selectedYear = i.toString()
-                                        historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                        selectYearDropDown = false
-                                    }.padding(5.dp),
+                                    modifier = Modifier
+                                        .clickable {
+                                            selectedYear = i.toString()
+                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                            selectYearDropDown = false
+                                        }
+                                        .padding(5.dp),
                                     text = i.toString()
                                 )
                             }
@@ -236,7 +243,7 @@ fun StepHistoryItem(
             Box() {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 10.dp)
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp)
                 ) {
 //                    Icon(
 //                        modifier = Modifier.size(40.dp),
@@ -257,12 +264,21 @@ fun StepHistoryItem(
 //                                Text(text = "Steps: ")
 //                                Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
 //                            }
-                            Row() {
-                                Text(text = "Date: ")
-                                Text(
-                                    text = "${step.day}/${step.month}/${step.year}",
-                                    fontWeight = FontWeight.Bold
-                                )
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Row() {
+                                    Text(text = "Date: ")
+                                    Text(
+                                        text = "${step.day}/${step.month}/${step.year}",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Row() {
+                                    Text(text = "Goal Name: ")
+                                    Text(
+                                        text = step.goalName,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
 
                         }
