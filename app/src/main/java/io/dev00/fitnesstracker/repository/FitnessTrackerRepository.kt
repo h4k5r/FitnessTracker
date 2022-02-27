@@ -31,6 +31,8 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
     fun getAllGoals(): Flow<List<Goal>> =
         fitnessTrackerDAO.getGoals().flowOn(Dispatchers.IO).conflate()
 
+    fun searchGoals(searchTerm:String): Flow<List<Goal>> = fitnessTrackerDAO.searchGoal(searchTerm = searchTerm).conflate()
+
     fun getActiveGoal(): Flow<List<Goal>> =
         fitnessTrackerDAO.getActiveGoal().flowOn(Dispatchers.IO).conflate()
 

@@ -20,6 +20,9 @@ interface FitnessTrackerDAO {
     @Query("SELECT * from goals where is_active=0")
     fun getInactiveGoals():Flow<List<Goal>>
 
+    @Query("SELECT * from goals where goal_name LIKE  '%' || :searchTerm || '%'")
+    fun searchGoal(searchTerm:String):Flow<List<Goal>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGoal(goal: Goal)
 

@@ -2,7 +2,6 @@ package io.dev00.fitnesstracker.components
 
 import android.app.DatePickerDialog
 import android.content.Context
-import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,15 +15,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.rounded.DirectionsWalk
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,12 +33,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import java.util.*
 
-@Preview
 @Composable
 fun SimpleIconButton(
     modifier: Modifier = Modifier,
@@ -179,34 +179,40 @@ fun BottomNavBar(
                 Icon(
                     imageVector = Icons.Filled.Home,
                     contentDescription = "Home",
-                    modifier = Modifier.clickable {
-                        if (activeScreen.value != FitnessTrackerScreens.HomeScreen.name) {
-                            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
-                            activeScreen.value = FitnessTrackerScreens.HomeScreen.name
+                    modifier = Modifier
+                        .clickable {
+                            if (activeScreen.value != FitnessTrackerScreens.HomeScreen.name) {
+                                navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
+                                activeScreen.value = FitnessTrackerScreens.HomeScreen.name
+                            }
                         }
-                    }.scale(1.2f),
+                        .scale(1.2f),
                     tint = homeIconTint
                 )
                 Icon(
                     imageVector = Icons.Filled.Flag,
                     contentDescription = "Goals",
-                    modifier = Modifier.clickable {
-                        if (activeScreen.value != FitnessTrackerScreens.GoalsScreen.name) {
-                            navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
-                            activeScreen.value = FitnessTrackerScreens.GoalsScreen.name
+                    modifier = Modifier
+                        .clickable {
+                            if (activeScreen.value != FitnessTrackerScreens.GoalsScreen.name) {
+                                navController.navigate(route = FitnessTrackerScreens.GoalsScreen.name)
+                                activeScreen.value = FitnessTrackerScreens.GoalsScreen.name
+                            }
                         }
-                    }.scale(1.2f),
+                        .scale(1.2f),
                     tint = goalIconTint
                 )
                 Icon(
                     imageVector = Icons.Filled.History,
                     contentDescription = "History",
-                    modifier = Modifier.clickable {
-                        if (activeScreen.value != FitnessTrackerScreens.HistoryScreen.name) {
-                            navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
-                            activeScreen.value = FitnessTrackerScreens.HistoryScreen.name
+                    modifier = Modifier
+                        .clickable {
+                            if (activeScreen.value != FitnessTrackerScreens.HistoryScreen.name) {
+                                navController.navigate(route = FitnessTrackerScreens.HistoryScreen.name)
+                                activeScreen.value = FitnessTrackerScreens.HistoryScreen.name
+                            }
                         }
-                    }.scale(1.2f),
+                        .scale(1.2f),
                     tint = historyIconTint
                 )
             }
@@ -231,18 +237,19 @@ fun BackgroundCard(
 }
 
 @Composable
-fun OutlinedIconInputField(
+fun OutlinedLeadingIconInputField(
     icon: ImageVector,
     modifier: Modifier = Modifier,
     valueState: MutableState<String>,
     label: String,
     enabled: Boolean,
     isSingleLine: Boolean,
-    error:Boolean = false,
+    error: Boolean = false,
     keyBoardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Done,
     onAction: KeyboardActions = KeyboardActions.Default,
-    onValueChange: (content:String) -> Unit = {}
+    onValueChange: (content: String) -> Unit = {},
+    onIconClick: () -> Unit = {}
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -254,9 +261,56 @@ fun OutlinedIconInputField(
         label = { Text(text = label) },
         leadingIcon = {
             Icon(
+                modifier = Modifier.clickable { onIconClick() },
                 imageVector = icon,
                 contentDescription = "Walk Icon"
             )
+        },
+        singleLine = isSingleLine,
+        textStyle = MaterialTheme.typography.body1,
+        enabled = enabled,
+        keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = imeAction),
+        keyboardActions = onAction,
+        isError = error
+    )
+}
+
+class IconItem(val imageVector: ImageVector = Icons.Default.Error,val onClick: () -> Unit = {})
+
+@Composable
+fun OutlinedTrailingIconInputField(
+    icons: List<IconItem>,
+    modifier: Modifier = Modifier,
+    valueState: MutableState<String>,
+    label: String,
+    enabled: Boolean,
+    isSingleLine: Boolean,
+    error: Boolean = false,
+    keyBoardType: KeyboardType = KeyboardType.Number,
+    imeAction: ImeAction = ImeAction.Done,
+    onAction: KeyboardActions = KeyboardActions.Default,
+    onValueChange: (content: String) -> Unit = {},
+) {
+    OutlinedTextField(
+        modifier = modifier,
+        value = valueState.value,
+        onValueChange = {
+            valueState.value = it
+            onValueChange(it);
+        },
+        label = { Text(text = label) },
+        trailingIcon = {
+            Row() {
+                icons.map {
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        modifier = Modifier.clickable { it.onClick() },
+                        imageVector = it.imageVector,
+                        contentDescription = "Walk Icon"
+                    )
+                }
+            }
+
         },
         singleLine = isSingleLine,
         textStyle = MaterialTheme.typography.body1,
@@ -277,7 +331,7 @@ fun OutlinedInputField(
     keyBoardType: KeyboardType = KeyboardType.Number,
     imeAction: ImeAction = ImeAction.Done,
     onAction: KeyboardActions = KeyboardActions.Default,
-    onValueChange: (content:String) -> Unit = {}
+    onValueChange: (content: String) -> Unit = {}
 ) {
     OutlinedTextField(
         modifier = modifier,
@@ -293,6 +347,90 @@ fun OutlinedInputField(
         keyboardOptions = KeyboardOptions(keyboardType = keyBoardType, imeAction = imeAction),
         keyboardActions = onAction
     )
+}
+
+@Composable
+fun AutoCompleteTextField(
+    modifier: Modifier = Modifier,
+    fieldValue: MutableState<String>,
+    expanded: MutableState<Boolean>,
+    label: String,
+    composables: List<@Composable () -> Unit>,
+    onSearch: (content: String) -> Unit = { },
+    onDrop: () -> Unit = {}
+) {
+    var textFieldSize = remember { mutableStateOf(Size.Zero) }
+
+    val icon = if (expanded.value)
+        Icons.Filled.ArrowDropUp //it requires androidx.compose.material:material-icons-extended
+    else
+        Icons.Filled.ArrowDropDown
+//    val icon = Icons.Default.Search
+
+
+    Column() {
+        OutlinedTrailingIconInputField(
+            modifier = modifier
+                .onGloballyPositioned { coordinates ->
+                    //This value is used to assign to the DropDown the same width
+                    textFieldSize.value = coordinates.size.toSize()
+                },
+            icons = listOf(
+                IconItem(imageVector = Icons.Default.Search) { onSearch(fieldValue.value) },
+                IconItem(imageVector = icon) { expanded.value = !expanded.value; onDrop() }
+            ),
+            valueState = fieldValue,
+            onValueChange = {
+                fieldValue.value = it
+            },
+            label = label,
+            enabled = true,
+            isSingleLine = true,
+            keyBoardType = KeyboardType.Ascii,
+            imeAction = ImeAction.Search,
+            onAction = KeyboardActions {
+                onSearch(fieldValue.value)
+            }
+        )
+//        OutlinedTextField(
+//            value = fieldValue.value,
+//            onValueChange = {
+//                fieldValue.value = it
+////                onValueChange(it)
+//            },
+//            modifier = modifier
+//                .onGloballyPositioned { coordinates ->
+//                    //This value is used to assign to the DropDown the same width
+//                    textFieldSize.value = coordinates.size.toSize()
+//                },
+//            label = { Text(label) },
+//            trailingIcon = {
+//                Icon(icon, "contentDescription",
+//                    Modifier.clickable { onValueChange })
+//            },
+//            singleLine = true
+//        )
+        DropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false },
+            modifier = Modifier
+                .width(with(LocalDensity.current) { textFieldSize.value.width.toDp() })
+                .zIndex(.5f)
+        ) {
+            composables.forEach {
+                it()
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Preview() {
+    val value = remember {
+        mutableStateOf("")
+    }
+//    AutoCompleteTextBox(label = "Test", fieldValue = value, composables = listOf("dfsdfsd","sdfsdf","sdfsdfsdf"))
 }
 
 @Composable

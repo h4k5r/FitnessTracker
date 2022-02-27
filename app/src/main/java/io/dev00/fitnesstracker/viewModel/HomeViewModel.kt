@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.models.Preference
@@ -14,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRepository) :
@@ -30,6 +32,9 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
 
     private var _allGoals = MutableStateFlow<List<Goal>>(emptyList())
     var allGoals = _allGoals.asStateFlow();
+
+    private var _searchGoals = MutableStateFlow<List<Goal>>(emptyList())
+    var searchGoals = _searchGoals.asStateFlow();
 
     private var _preferences = MutableStateFlow<List<Preference>>(emptyList())
     var preferences = _preferences.asStateFlow()
@@ -51,15 +56,14 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         viewModelScope.launch(Dispatchers.IO) {
             repository.getAllGoals().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
-                    Log.d("TAG", "No Goals")
                 }
                 _allGoals.value = it
+                _searchGoals.value =it
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
             repository.getActiveGoal().distinctUntilChanged().collect {
                 if (it.isNullOrEmpty()) {
-                    Log.d("TAG", "No Active Goal")
                 }
                 _activeGoal.value = it
             }
@@ -69,7 +73,6 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
                 .distinctUntilChanged()
                 .collect {
                     if (it.isNullOrEmpty()) {
-                        Log.d("TAG", "No Steps data found on the given date")
                         _currentSteps.value =
                             listOf(Steps(steps = 0, day = day, month = month, year = year))
                         _selectedDateSteps.value =
@@ -135,7 +138,6 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
             steps.target = activeGoal.value[0].steps
         }
         viewModelScope.launch(Dispatchers.Main) {
-            Log.d("TAG", "insertSteps: Executed ")
             repository.insertSteps(steps = steps)
         }
     }
@@ -144,10 +146,25 @@ class HomeViewModel @Inject constructor(private val repository: FitnessTrackerRe
         steps.goalName = historyGoal.value.goalName
         steps.target = historyGoal.value.steps
         viewModelScope.launch(Dispatchers.Main) {
-            Log.d("TAG", "insertHistorySteps: Executed ")
             repository.insertSteps(steps = steps)
         }
+    }
 
+    fun searchGoals(searchTerm:String,successHandler:() -> Unit = {},failureHandler:() -> Unit = {}) {
+        viewModelScope.launch(Dispatchers.IO) {
+            if (searchTerm.isEmpty()) {
+                _searchGoals.value = allGoals.value
+                return@launch
+            }
+            repository.searchGoals(searchTerm = searchTerm).collect {
+                if (it.isNotEmpty()) {
+                    successHandler()
+                } else {
+                    failureHandler()
+                }
+                _searchGoals.value = it
+            }
+        }
     }
 
 //    fun updateSteps(steps: Steps) {

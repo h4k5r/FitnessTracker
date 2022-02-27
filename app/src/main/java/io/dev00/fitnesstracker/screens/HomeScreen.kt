@@ -1,12 +1,9 @@
 package io.dev00.fitnesstracker.screens
 
-import android.util.Log
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +28,9 @@ import io.dev00.fitnesstracker.models.Steps
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
 import io.dev00.fitnesstracker.utils.fetchCurrentDate
 import io.dev00.fitnesstracker.viewModel.HomeViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @ExperimentalComposeUiApi
 @Composable
@@ -132,10 +132,10 @@ fun TopCard(homeViewModel: HomeViewModel) {
                     val historyGoal = homeViewModel.getHistoryGoal()
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-//                            text = "Set Goal: ${selectedDayGoalName}",
                             text = buildAnnotatedString {
                                 append(
                                     AnnotatedString(
@@ -145,19 +145,18 @@ fun TopCard(homeViewModel: HomeViewModel) {
                                         )
                                     )
                                 )
-                                append(
-                                    AnnotatedString(
-                                        selectedDayGoalName, spanStyle = SpanStyle(
-                                            fontWeight = FontWeight(500),
-                                            fontSize = MaterialTheme.typography.h5.fontSize
-                                        )
-                                    )
-                                )
                             },
                         )
-                        GoalsDropDown(homeViewModel = homeViewModel) {
+                        GoalsDropDown(
+                            homeViewModel = homeViewModel,
+                            selectedDayGoalName = selectedDayGoalName
+                        ) {
                             homeViewModel.setHistoryGoal(it)
                             selectedDayGoalName = it.goalName
+                            val tobeSaved = selectedDaySteps.copy()
+                            tobeSaved.goalName = it.goalName
+                            tobeSaved.target = it.steps
+                            homeViewModel.insertHistorySteps(tobeSaved)
                         }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
@@ -180,7 +179,8 @@ fun TopCard(homeViewModel: HomeViewModel) {
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = buildAnnotatedString {
@@ -192,25 +192,23 @@ fun TopCard(homeViewModel: HomeViewModel) {
                                         )
                                     )
                                 )
-                                append(
-                                    AnnotatedString(
-                                        selectedDayGoalName, spanStyle = SpanStyle(
-                                            fontSize = MaterialTheme.typography.h5.fontSize,
-                                            fontWeight = FontWeight(500)
-                                        )
-                                    )
-                                )
                             },
                             fontSize = MaterialTheme.typography.h5.fontSize,
                             fontWeight = FontWeight(500)
                         )
-                        GoalsDropDown(homeViewModel = homeViewModel) {
+                        GoalsDropDown(
+                            homeViewModel = homeViewModel,
+                            selectedDayGoalName = selectedDayGoalName
+                        ) {
                             homeViewModel.setHistoryGoal(it)
                             selectedDayGoalName = it.goalName
+                            val tobeSaved = selectedDaySteps.copy()
+                            tobeSaved.goalName = it.goalName
+                            tobeSaved.target = it.steps
+                            homeViewModel.insertHistorySteps(tobeSaved)
                         }
                     }
                     Spacer(modifier = Modifier.height(10.dp))
-                    Log.d("TAG", "TopCard: ${homeViewModel.getHistoryGoal()}")
                     Progress(
                         currentSteps = selectedDaySteps.steps,
                         activeGoal = homeViewModel.getHistoryGoal()
@@ -221,43 +219,63 @@ fun TopCard(homeViewModel: HomeViewModel) {
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun GoalsDropDown(homeViewModel: HomeViewModel, onGoalSelected: (goal: Goal) -> Unit) {
-    var allGoals = homeViewModel.allGoals.collectAsState().value
+fun GoalsDropDown(
+    homeViewModel: HomeViewModel,
+    selectedDayGoalName: String,
+    onGoalSelected: (goal: Goal) -> Unit
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    var searchGoals = homeViewModel.searchGoals.collectAsState().value
     var selectedGoalDropDown by remember {
         mutableStateOf(false)
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box() {
-            DropdownMenu(
-                modifier = Modifier
-                    .fillMaxHeight(0.3f)
-                    .padding(top = 5.dp),
-                expanded = selectedGoalDropDown,
-                onDismissRequest = { selectedGoalDropDown = false }) {
-                for (goal in allGoals) {
-                    Text(
-                        modifier = Modifier
-                            .clickable {
-                                selectedGoalDropDown = false
-                                onGoalSelected(goal)
-                            }
-                            .padding(5.dp),
-                        text = goal.goalName
-                    )
-                }
+    var expanded = remember {
+        mutableStateOf(false)
+    }
+    val value = remember {
+        mutableStateOf(selectedDayGoalName)
+    }
+    val coroutineScope = rememberCoroutineScope();
+    val job = remember {
+        mutableStateOf<Job>(Job())
+    }
+    val goalsDropDownItems: ArrayList<@Composable () -> Unit> = ArrayList()
+    searchGoals.forEach {
+        goalsDropDownItems.add {
+            DropdownMenuItem(onClick = {
+                value.value = it.goalName
+                expanded.value = false
+                onGoalSelected(it)
+            }) {
+                Text(text = it.goalName)
             }
         }
-        SimpleIconButton(
-            modifier = Modifier,
-            icon = Icons.Default.ArrowDropDown,
-            contentDescription = "Goals Drop Down"
-        ) {
-            selectedGoalDropDown = true
-        }
     }
+    AutoCompleteTextField(
+        label = "Goal",
+        fieldValue = value,
+        expanded = expanded,
+        composables = goalsDropDownItems,
+        onSearch = {
+            homeViewModel.searchGoals(
+                it,
+                successHandler = {
+//                    job.value.cancel()
+//                    job.value = coroutineScope.launch {
+//                        delay(1200)
+                        expanded.value = true
+//                    }
+                },
+                failureHandler = {
+                    expanded.value = false
+                })
+        },
+        onDrop = {
+            homeViewModel.searchGoals("")
+        }
+    )
 }
 
 @Composable
@@ -276,7 +294,7 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
         progressBarColor = Color.Green
     } else if (progress < 0.5f) {
         progressBarColor = Color.Red
-    } else  {
+    } else {
         progressBarColor = Color.Yellow
     }
     Text(
@@ -345,7 +363,7 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
         mutableStateOf(Preference(name = "historical editing", value = true))
     }
     val historical = preferencesList.find { it.name == "historical editing" }
-    if(historical != null) {
+    if (historical != null) {
         historicalEditing = historical
     }
     var isTouched by remember {
@@ -393,7 +411,7 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                     }
                 }
                 Spacer(modifier = Modifier.height(10.dp))
-                OutlinedIconInputField(
+                OutlinedLeadingIconInputField(
                     modifier = Modifier.fillMaxWidth(),
                     valueState = stringSteps,
                     label = "Steps",
@@ -410,7 +428,7 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
                 )
                 if (!isValid && isTouched) {
                     Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Enter Valid Number" )
+                    Text(text = "Enter Valid Number")
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
