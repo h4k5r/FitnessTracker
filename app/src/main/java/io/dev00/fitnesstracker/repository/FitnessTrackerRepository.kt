@@ -14,8 +14,9 @@ import javax.inject.Inject
 
 
 class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO: FitnessTrackerDAO) {
-    fun  getGoalByName(name:String):List<Goal> =
+    fun getGoalByName(name: String): List<Goal> =
         fitnessTrackerDAO.getGoalByName(name = name)
+
     suspend fun insertGoal(goal: Goal) {
         fitnessTrackerDAO.insertGoal(goal = goal)
     }
@@ -31,7 +32,8 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
     fun getAllGoals(): Flow<List<Goal>> =
         fitnessTrackerDAO.getGoals().flowOn(Dispatchers.IO).conflate()
 
-    fun searchGoals(searchTerm:String): Flow<List<Goal>> = fitnessTrackerDAO.searchGoal(searchTerm = searchTerm).conflate()
+    fun searchGoals(searchTerm: String): Flow<List<Goal>> =
+        fitnessTrackerDAO.searchGoal(searchTerm = searchTerm).conflate()
 
     fun getActiveGoal(): Flow<List<Goal>> =
         fitnessTrackerDAO.getActiveGoal().flowOn(Dispatchers.IO).conflate()
@@ -46,6 +48,7 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
     fun getStepsByMonthAndYear(month: String, year: String): Flow<List<Steps>> =
         fitnessTrackerDAO.getStepsByMonthAndYear(month = month, year = year)
 
+    fun getAllSteps(): Flow<List<Steps>> = fitnessTrackerDAO.getAllSteps()
 
     suspend fun insertSteps(steps: Steps) = fitnessTrackerDAO.insertSteps(steps = steps)
 
@@ -53,9 +56,29 @@ class FitnessTrackerRepository @Inject constructor(private val fitnessTrackerDAO
 
     suspend fun deleteSteps(steps: Steps) = fitnessTrackerDAO.deleteSteps(steps = steps)
 
-    suspend fun deleteMonth(month: String,year: String) = fitnessTrackerDAO.deleteAllStepsInAMonth(month = month, year = year)
+    suspend fun deleteStepsByMonth(
+        currentDay: String,
+        currentMonth: String,
+        currentYear: String,
+        month: String,
+        year: String
+    ) =
+        fitnessTrackerDAO.deleteAllStepsInAMonth(
+            currentDay = currentDay,
+            currentMonth = currentMonth,
+            currentYear = currentYear,
+            month = month,
+            year = year
+        )
 
-    suspend fun getPreferences(): Flow<List<Preference>> =
+    suspend fun deleteAllSteps(currentDay: String, currentMonth: String, currentYear: String) =
+        fitnessTrackerDAO.deleteAllSteps(
+            currentDay = currentDay,
+            currentMonth = currentMonth,
+            currentYear = currentYear
+        )
+
+    fun getPreferences(): Flow<List<Preference>> =
         fitnessTrackerDAO.getPreferences()
 
     suspend fun insertPreference(preference: Preference) =

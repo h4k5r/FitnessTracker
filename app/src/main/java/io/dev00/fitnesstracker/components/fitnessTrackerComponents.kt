@@ -25,13 +25,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.zIndex
@@ -78,7 +78,7 @@ fun FilledCircularIconButton(
 }
 
 @Composable
-fun TopBar(navController: NavController, content: @Composable () -> Unit = {}) {
+fun TopBar(navController: NavController, menuItems: List<@Composable (onItemClick:() -> Unit) -> Unit> = emptyList(), main: @Composable () -> Unit = {}) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -87,7 +87,7 @@ fun TopBar(navController: NavController, content: @Composable () -> Unit = {}) {
         var isDropDownOpen by remember {
             mutableStateOf(false)
         }
-        content()
+        main()
         Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.Center) {
             SimpleIconButton(
                 modifier = Modifier,
@@ -110,7 +110,11 @@ fun TopBar(navController: NavController, content: @Composable () -> Unit = {}) {
                             .padding(5.dp),
                         text = "Settings"
                     )
-
+                    menuItems.forEach {
+                        it {
+                            isDropDownOpen = false
+                        }
+                    }
                 }
             }
 
@@ -275,7 +279,7 @@ fun OutlinedLeadingIconInputField(
     )
 }
 
-class IconItem(val imageVector: ImageVector = Icons.Default.Error,val onClick: () -> Unit = {})
+class IconItem(val imageVector: ImageVector = Icons.Default.Error, val onClick: () -> Unit = {})
 
 @Composable
 fun OutlinedTrailingIconInputField(
@@ -359,8 +363,8 @@ fun AutoCompleteTextField(
     onSearch: (content: String) -> Unit = { },
     onDrop: () -> Unit = {}
 ) {
-    var textFieldSize = remember { mutableStateOf(Size.Zero) }
-
+    val textFieldSize = remember { mutableStateOf(Size.Zero) }
+    val focusManager = LocalFocusManager.current
     val icon = if (expanded.value)
         Icons.Filled.ArrowDropUp //it requires androidx.compose.material:material-icons-extended
     else
@@ -390,6 +394,7 @@ fun AutoCompleteTextField(
             imeAction = ImeAction.Search,
             onAction = KeyboardActions {
                 onSearch(fieldValue.value)
+                focusManager.clearFocus()
             }
         )
 //        OutlinedTextField(
@@ -412,7 +417,7 @@ fun AutoCompleteTextField(
 //        )
         DropdownMenu(
             expanded = expanded.value,
-            onDismissRequest = { expanded.value = false },
+            onDismissRequest = { expanded.value = false; focusManager.clearFocus() },
             modifier = Modifier
                 .width(with(LocalDensity.current) { textFieldSize.value.width.toDp() })
                 .zIndex(.5f)
@@ -424,14 +429,6 @@ fun AutoCompleteTextField(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun Preview() {
-    val value = remember {
-        mutableStateOf("")
-    }
-//    AutoCompleteTextBox(label = "Test", fieldValue = value, composables = listOf("dfsdfsd","sdfsdf","sdfsdfsdf"))
-}
 
 @Composable
 fun CheckBoxWithText(

@@ -98,7 +98,11 @@ fun AddOrEditGoalScreen(
                         navController.popBackStack()
                     },
                     failureCallback = {
-                        SnackBarConfig.setSnackBarConfig(show = true, content = "Goal Already Exists", showButton = false)
+                        SnackBarConfig.setSnackBarConfig(
+                            show = true,
+                            content = "Goal Already Exists",
+                            showButton = false
+                        )
                         coroutineScope.launch(Dispatchers.IO) {
                             Thread().run {
                                 Thread.sleep(2000)
@@ -116,8 +120,23 @@ fun AddOrEditGoalScreen(
             if (isNamevalid && isStepsValid) {
                 toBeSavedGoal.goalName = goalName.value
                 toBeSavedGoal.steps = goalSteps.value.toInt()
-                editGoalViewModel.insertGoal(toBeSavedGoal)
-                navController.popBackStack()
+                editGoalViewModel.insertGoal(
+                    toBeSavedGoal,
+                    successCallback = {
+                        navController.popBackStack()
+                    }, failureCallback = {
+                        SnackBarConfig.setSnackBarConfig(
+                            show = true,
+                            content = "Goal Already Exists",
+                            showButton = false
+                        )
+                        coroutineScope.launch(Dispatchers.IO) {
+                            Thread().run {
+                                Thread.sleep(2000)
+                                SnackBarConfig.clearSnackBarConfig()
+                            }
+                        }
+                    })
             }
         }
     }
@@ -179,7 +198,7 @@ fun AddOrEditGoalScreen(
                     )
                     if (!isNamevalid && isNameTouched) {
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text(text = "Enter Valid Name" )
+                        Text(text = "Enter Valid Name")
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                     OutlinedInputField(
@@ -202,7 +221,7 @@ fun AddOrEditGoalScreen(
                     )
                     if (!isStepsValid && isStepsTouched) {
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text(text = "Enter Valid Steps" )
+                        Text(text = "Enter Valid Steps")
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                     Button(

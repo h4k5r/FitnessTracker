@@ -1,5 +1,6 @@
 package io.dev00.fitnesstracker.screens
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +25,9 @@ import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.ModalConfiguration
 import io.dev00.fitnesstracker.components.SimpleIconButton
+import io.dev00.fitnesstracker.components.TopBar
 import io.dev00.fitnesstracker.models.Steps
+import io.dev00.fitnesstracker.utils.fetchCurrentDate
 import io.dev00.fitnesstracker.viewModel.HistoryViewModel
 
 @Composable
@@ -36,17 +39,30 @@ fun HistoryScreen(
     var selectedMonth by remember {
         mutableStateOf(historyViewModel.getMonthAndYear().split("/")[0])
     }
+//    var selectedMonth = historyViewModel.month.value
     var selectMonthDropDown by remember {
         mutableStateOf(false)
     }
     var selectedYear by remember {
         mutableStateOf(historyViewModel.getMonthAndYear().split("/")[1])
     }
+//    var selectedYear = historyViewModel.year.value
     var selectYearDropDown by remember {
         mutableStateOf(false)
     }
-    var steps =
-        historyViewModel.selectedMonthSteps.collectAsState().value.sortedBy { it.day.toInt() }
+    var showAll by remember {
+        mutableStateOf(false)
+    }
+    val steps: List<Steps> = if (showAll) {
+        historyViewModel.allSteps.collectAsState().value.sortedBy { it.day.toInt() }
+            .reversed()
+    } else {
+        historyViewModel.selectedMonthSteps.collectAsState().value.filter {
+            val stepDate = "${it.day}/${it.month}/${it.year}"
+            fetchCurrentDate() != stepDate
+        }.sortedBy { it.day.toInt() }
+            .reversed()
+    }
     Column(modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceBetween) {
         Column(
             modifier = modifier
@@ -59,129 +75,160 @@ fun HistoryScreen(
                 var isDropDownOpen by remember {
                     mutableStateOf(false)
                 }
-                Text(
-                    text = "History",
-                    modifier = Modifier,
-                    fontSize = MaterialTheme.typography.h4.fontSize,
-                    fontWeight = FontWeight(300)
-                )
+                TopBar(navController = navController, menuItems = listOf {
+                    if (showAll)
+                        Text(
+                            modifier = Modifier
+                                .clickable {
+                                    it()
+                                    isDropDownOpen = false
+                                    ModalConfiguration.setModalConfig(
+                                        title = "Delete All History",
+                                        content = "Do you want do delete all History data?",
+                                        show = true,
+                                        onYesClickHandler = {
+                                            historyViewModel.deleteAllSteps()
+                                            ModalConfiguration.clearModalConfig()
+                                        },
+                                        onNoClickHandler = {
+                                            ModalConfiguration.clearModalConfig()
+                                        }
+                                    )
+                                }
+                                .padding(5.dp),
+                            text = "Delete All History"
+                        )
+                    else
+                        Text(
+                            modifier = Modifier
+                                .clickable {
+                                    it()
+                                    isDropDownOpen = false
+                                    ModalConfiguration.setModalConfig(
+                                        title = "Delete History Month",
+                                        content = "Do you want do delete data on the selected month?",
+                                        show = true,
+                                        onYesClickHandler = {
+                                            historyViewModel.deleteMonth(
+                                                month = selectedMonth,
+                                                year = selectedYear
+                                            )
+                                            ModalConfiguration.clearModalConfig()
+                                        },
+                                        onNoClickHandler = {
+                                            ModalConfiguration.clearModalConfig()
+                                        }
+                                    )
+                                }
+                                .padding(5.dp),
+                            text = "Delete Month"
+                        )
 
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    SimpleIconButton(
-                        modifier = Modifier,
-                        icon = Icons.Default.MoreVert,
-                        contentDescription = "Delete Drop Down"
+                }) {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        isDropDownOpen = true
-                    }
-                    Box() {
-                        DropdownMenu(
+                        Text(
+                            text = "History",
                             modifier = Modifier,
-                            expanded = isDropDownOpen,
-                            onDismissRequest = { isDropDownOpen = false }) {
-                            Text(
-                                modifier = Modifier
-                                    .clickable {
-                                        isDropDownOpen = false
-                                        ModalConfiguration.setModalConfig(
-                                            title = "Delete History Month",
-                                            content = "Do you want do delete data on the selected month?",
-                                            show = true,
-                                            onYesClickHandler = {
-                                                historyViewModel.deleteMonth(
-                                                    month = selectedMonth,
-                                                    year = selectedYear
-                                                )
-                                                ModalConfiguration.clearModalConfig()
-                                            },
-                                            onNoClickHandler = {
-                                                ModalConfiguration.clearModalConfig()
-                                            }
-                                        )
-                                    }
-                                    .padding(5.dp),
-                                text = "Delete Month"
-                            )
-
+                            fontSize = MaterialTheme.typography.h4.fontSize,
+                            fontWeight = FontWeight(300)
+                        )
+                        Spacer(modifier = Modifier)
+                        Button(onClick = { showAll = !showAll }) {
+                            val buttonText: String = if (showAll) {
+                                "View By Month"
+                            } else {
+                                "View All"
+                            }
+                            Text(text = buttonText)
                         }
+
                     }
 
                 }
+
             }
-            Text(
-                text = "Pick Month and Year",
-                modifier = Modifier.padding(top = 20.dp),
-                fontSize = MaterialTheme.typography.h5.fontSize,
-                fontWeight = FontWeight(500)
-            )
-            Row() {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Selected Month: ")
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Box() {
-                        Text(text = selectedMonth, fontWeight = FontWeight.Bold)
-                        DropdownMenu(
-                            modifier = Modifier
-                                .fillMaxHeight(0.3f)
-                                .padding(top = 5.dp),
-                            expanded = selectMonthDropDown,
-                            onDismissRequest = { selectMonthDropDown = false }) {
-                            for (i in 1..12) {
-                                Text(
-                                    modifier = Modifier
-                                        .clickable {
-                                            selectedMonth = i.toString()
-                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                            selectMonthDropDown = false
-                                        }
-                                        .padding(5.dp),
-                                    text = i.toString()
-                                )
+
+            Spacer(modifier = Modifier
+                .height(20.dp)
+                .width(1.dp))
+            if (!showAll) {
+                Text(
+                    text = "Pick Month and Year",
+                    modifier = Modifier,
+                    fontSize = MaterialTheme.typography.h5.fontSize,
+                    fontWeight = FontWeight(500)
+                )
+                Row() {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Selected Month: ")
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Box() {
+                            Text(text = selectedMonth, fontWeight = FontWeight.Bold)
+                            DropdownMenu(
+                                modifier = Modifier
+                                    .fillMaxHeight(0.3f)
+                                    .padding(top = 5.dp),
+                                expanded = selectMonthDropDown,
+                                onDismissRequest = { selectMonthDropDown = false }) {
+                                for (i in 1..12) {
+                                    Text(
+                                        modifier = Modifier
+                                            .clickable {
+                                                selectedMonth = i.toString()
+                                                historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                                selectMonthDropDown = false
+                                            }
+                                            .padding(5.dp),
+                                        text = i.toString()
+                                    )
+                                }
                             }
                         }
-                    }
-                    SimpleIconButton(
-                        modifier = Modifier,
-                        icon = Icons.Default.ArrowDropDown,
-                        contentDescription = "Month Drop Down"
-                    ) {
-                        selectMonthDropDown = true
-                    }
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Selected Year: ")
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Box() {
-                        Text(text = selectedYear, fontWeight = FontWeight.Bold)
-                        DropdownMenu(
-                            modifier = Modifier
-                                .fillMaxHeight(0.3f)
-                                .padding(top = 5.dp),
-                            expanded = selectYearDropDown,
-                            onDismissRequest = { selectYearDropDown = false }) {
-                            for (i in 2000..2100) {
-                                Text(
-                                    modifier = Modifier
-                                        .clickable {
-                                            selectedYear = i.toString()
-                                            historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
-                                            selectYearDropDown = false
-                                        }
-                                        .padding(5.dp),
-                                    text = i.toString()
-                                )
-                            }
+                        SimpleIconButton(
+                            modifier = Modifier,
+                            icon = Icons.Default.ArrowDropDown,
+                            contentDescription = "Month Drop Down"
+                        ) {
+                            selectMonthDropDown = true
                         }
                     }
-                    SimpleIconButton(
-                        modifier = Modifier,
-                        icon = Icons.Default.ArrowDropDown,
-                        contentDescription = "Year Drop Down"
-                    ) {
-                        selectYearDropDown = true
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Selected Year: ")
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Box() {
+                            Text(text = selectedYear, fontWeight = FontWeight.Bold)
+                            DropdownMenu(
+                                modifier = Modifier
+                                    .fillMaxHeight(0.3f)
+                                    .padding(top = 5.dp),
+                                expanded = selectYearDropDown,
+                                onDismissRequest = { selectYearDropDown = false }) {
+                                for (i in 2000..2100) {
+                                    Text(
+                                        modifier = Modifier
+                                            .clickable {
+                                                selectedYear = i.toString()
+                                                historyViewModel.setMonthYear("${selectedMonth}/${selectedYear}")
+                                                selectYearDropDown = false
+                                            }
+                                            .padding(5.dp),
+                                        text = i.toString()
+                                    )
+                                }
+                            }
+                        }
+                        SimpleIconButton(
+                            modifier = Modifier,
+                            icon = Icons.Default.ArrowDropDown,
+                            contentDescription = "Year Drop Down"
+                        ) {
+                            selectYearDropDown = true
+                        }
                     }
                 }
             }
@@ -190,20 +237,6 @@ fun HistoryScreen(
                 items(steps) {
                     StepHistoryItem(
                         it
-//                        ,onDeleteClick = {
-//                            ModalConfiguration.setModalConfig(
-//                                title = "Delete History",
-//                                content = "Do you want do delete data on ${it.day}/${it.month}/${it.year}?",
-//                                show = true,
-//                                onYesClickHandler = {
-//                                    historyViewModel.deleteSteps(it)
-//                                    ModalConfiguration.clearModalConfig()
-//                                },
-//                                onNoClickHandler = {
-//                                    ModalConfiguration.clearModalConfig()
-//                                }
-//                            )
-//                    }
                     )
                 }
             }
@@ -227,13 +260,15 @@ fun StepHistoryItem(
     } else {
         progress = currentSteps.toFloat() / target
     }
-    val progressBarColor:Color
-    if (progress == 1f) {
+    val progressBarColor: Color
+    if (progress >= 1f) {
         progressBarColor = Color.Green
     } else if (progress < 0.5f) {
         progressBarColor = Color.Red
-    } else  {
+    } else if (progress > 0.5f && progress < 1f) {
         progressBarColor = Color.Yellow
+    } else {
+        progressBarColor = Color.Transparent
     }
     BackgroundCard(
         elevation = 1,
@@ -264,7 +299,10 @@ fun StepHistoryItem(
 //                                Text(text = "Steps: ")
 //                                Text(text = step.steps.toString(), fontWeight = FontWeight.Bold)
 //                            }
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
                                 Row() {
                                     Text(text = "Date: ")
                                     Text(
@@ -296,7 +334,8 @@ fun StepHistoryItem(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = buildAnnotatedString {
                     append(AnnotatedString("Walked : "))
@@ -312,6 +351,15 @@ fun StepHistoryItem(
                         )
                     )
                 }, fontSize = 13.sp)
+                val percentValues = if (target ==0) {
+                    0
+                } else {
+                    (currentSteps.toFloat() / target * 100).toInt()
+                }
+                Text(
+                    text = "$percentValues % Done",
+                    fontSize = 13.sp
+                )
                 Text(text = buildAnnotatedString {
                     append(AnnotatedString("Target : "))
                     append(

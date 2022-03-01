@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.BackgroundCard
 import io.dev00.fitnesstracker.components.SimpleIconButton
 import io.dev00.fitnesstracker.components.SnackBarConfig
+import io.dev00.fitnesstracker.components.TopBar
 import io.dev00.fitnesstracker.models.Goal
 import io.dev00.fitnesstracker.models.Preference
 import io.dev00.fitnesstracker.navigation.FitnessTrackerScreens
@@ -62,12 +63,14 @@ fun GoalsScreen(
             .fillMaxSize()
     ) {
         Column {
-            Text(
-                modifier = Modifier.padding(top = 10.dp),
-                text = "Goals",
-                fontSize = MaterialTheme.typography.h4.fontSize,
-                fontWeight = FontWeight(300)
-            )
+            TopBar(navController = navController) {
+                Text(
+                    modifier = Modifier.padding(top = 10.dp),
+                    text = "Goals",
+                    fontSize = MaterialTheme.typography.h4.fontSize,
+                    fontWeight = FontWeight(300)
+                )
+            }
             Box(
                 modifier = Modifier
             ) {

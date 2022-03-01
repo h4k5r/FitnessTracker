@@ -1,5 +1,6 @@
 package io.dev00.fitnesstracker.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
@@ -226,12 +227,19 @@ fun GoalsDropDown(
     selectedDayGoalName: String,
     onGoalSelected: (goal: Goal) -> Unit
 ) {
+    val selectedDaySteps = homeViewModel.selectedDateSteps.collectAsState().value[0]
+    val selectedDayGoal =
+        Goal(goalName = selectedDaySteps.goalName, steps = selectedDaySteps.target)
+    val selectedDayGoalName by remember {
+        mutableStateOf(selectedDayGoal.goalName.trim())
+    }
+    val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
-    var searchGoals = homeViewModel.searchGoals.collectAsState().value
+    val searchGoals = homeViewModel.searchGoals.collectAsState().value
     var selectedGoalDropDown by remember {
         mutableStateOf(false)
     }
-    var expanded = remember {
+    val expanded = remember {
         mutableStateOf(false)
     }
     val value = remember {
@@ -248,6 +256,7 @@ fun GoalsDropDown(
                 value.value = it.goalName
                 expanded.value = false
                 onGoalSelected(it)
+                focusManager.clearFocus()
             }) {
                 Text(text = it.goalName)
             }
@@ -265,7 +274,7 @@ fun GoalsDropDown(
 //                    job.value.cancel()
 //                    job.value = coroutineScope.launch {
 //                        delay(1200)
-                        expanded.value = true
+                    expanded.value = true
 //                    }
                 },
                 failureHandler = {
@@ -290,15 +299,20 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
         progress = currentSteps.toFloat() / target
     }
     val progressBarColor: Color
-    if (progress == 1f) {
+    if (progress >= 1f) {
         progressBarColor = Color.Green
     } else if (progress < 0.5f) {
         progressBarColor = Color.Red
-    } else {
+    } else if (progress > 0.5f && progress < 1f) {
         progressBarColor = Color.Yellow
+    } else {
+        progressBarColor = Color.Transparent
     }
     Text(
-        text = "Progress:",
+        text = buildAnnotatedString {
+            append(AnnotatedString("Progress : ", SpanStyle()))
+            append(AnnotatedString((progress * 100).toInt().toString() + " %", SpanStyle()))
+        },
         fontSize = MaterialTheme.typography.body1.fontSize,
         fontWeight = FontWeight.SemiBold
     )
@@ -385,81 +399,83 @@ fun BottomCard(homeViewModel: HomeViewModel, navController: NavController) {
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    Column {
-        BackgroundCard {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Add Steps",
-                    fontSize = MaterialTheme.typography.h5.fontSize,
-                    fontWeight = FontWeight(500)
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Date : ")
-                    Text(text = date, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    if (historicalEditing.value) {
-                        Button(
-                            onClick = {
-                                datePickerDialog.show()
-                            },
-                            modifier = Modifier.height(30.dp),
-                            contentPadding = PaddingValues(top = 0.dp, bottom = 0.dp)
-                        ) {
-                            Text(text = "Change")
-                        }
+    val Add = {
+        val selectedDate = homeViewModel.getDate()
+        if (selectedDate == fetchCurrentDate()) {
+            currentDaySteps.steps += parsedValue
+            homeViewModel.insertSteps(currentDaySteps)
+            stringSteps.value = ""
+            parsedValue = 0;
+            focusManager.clearFocus()
+            navController.backQueue.removeLast()
+            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
+        } else {
+            selectedDaySteps.steps += parsedValue
+            if (isSameDate) {
+                homeViewModel.insertSteps(selectedDaySteps)
+            } else {
+                homeViewModel.insertHistorySteps(steps = selectedDaySteps)
+            }
+            stringSteps.value = ""
+            parsedValue = 0;
+            focusManager.clearFocus()
+            navController.backQueue.removeLast()
+            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
+        }
+    }
+    BackgroundCard {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "Add Steps",
+                fontSize = MaterialTheme.typography.h5.fontSize,
+                fontWeight = FontWeight(500)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "Date : ")
+                Text(text = date, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.width(10.dp))
+                if (historicalEditing.value) {
+                    Button(
+                        onClick = {
+                            datePickerDialog.show()
+                        },
+                        modifier = Modifier.height(30.dp),
+                        contentPadding = PaddingValues(top = 0.dp, bottom = 0.dp)
+                    ) {
+                        Text(text = "Change")
                     }
                 }
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            OutlinedLeadingIconInputField(
+                modifier = Modifier.fillMaxWidth(),
+                valueState = stringSteps,
+                label = "Steps",
+                icon = Icons.Default.DirectionsWalk,
+                enabled = true,
+                isSingleLine = true,
+                onAction = KeyboardActions {
+                    if (!isValid) return@KeyboardActions
+                    keyboardController?.hide()
+                    Add()
+                },
+                onValueChange = {
+                    isTouched = true
+                },
+            )
+            if (!isValid && isTouched) {
                 Spacer(modifier = Modifier.height(10.dp))
-                OutlinedLeadingIconInputField(
-                    modifier = Modifier.fillMaxWidth(),
-                    valueState = stringSteps,
-                    label = "Steps",
-                    icon = Icons.Default.DirectionsWalk,
-                    enabled = true,
-                    isSingleLine = true,
-                    onAction = KeyboardActions {
-                        if (!isValid) return@KeyboardActions
-                        keyboardController?.hide()
-                    },
-                    onValueChange = {
-                        isTouched = true
-                    },
-                )
-                if (!isValid && isTouched) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Text(text = "Enter Valid Number")
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = {
-                        val selectedDate = homeViewModel.getDate()
-                        if (selectedDate == fetchCurrentDate()) {
-                            currentDaySteps.steps += parsedValue
-                            homeViewModel.insertSteps(currentDaySteps)
-                            stringSteps.value = ""
-                            parsedValue = 0;
-                            focusManager.clearFocus()
-                            navController.backQueue.removeLast()
-                            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
-                        } else {
-                            selectedDaySteps.steps += parsedValue
-                            if (isSameDate) {
-                                homeViewModel.insertSteps(selectedDaySteps)
-                            } else {
-                                homeViewModel.insertHistorySteps(steps = selectedDaySteps)
-                            }
-                            stringSteps.value = ""
-                            parsedValue = 0;
-                            focusManager.clearFocus()
-                            navController.backQueue.removeLast()
-                            navController.navigate(route = FitnessTrackerScreens.HomeScreen.name)
-                        }
-                    }, enabled = isValid
-                ) {
-                    Text(text = "Add")
-                }
+                Text(text = "Enter Valid Number")
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    Add()
+                }, enabled = isValid
+            ) {
+                Text(text = "Add")
             }
         }
     }

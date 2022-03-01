@@ -16,13 +16,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.dev00.fitnesstracker.components.FilledCircularIconButton
 import io.dev00.fitnesstracker.models.Preference
+import io.dev00.fitnesstracker.utils.fetchCurrentDate
+import io.dev00.fitnesstracker.viewModel.HomeViewModel
 import io.dev00.fitnesstracker.viewModel.SettingsViewModel
 
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
+    homeViewModel: HomeViewModel
 ) {
     val preferencesList = settingsViewModel.preferences.value
     var init by remember {
@@ -32,18 +35,18 @@ fun SettingsScreen(
         mutableStateOf(true)
     }
     var editableGoal by remember {
-        mutableStateOf(Preference(name = "editable Goal", value = true))
+        mutableStateOf(Preference(id = 0, name = "editable Goal", value = false))
     }
     var historicalState = remember {
         mutableStateOf(true)
     }
     var historicalRecording by remember {
-        mutableStateOf(Preference(name = "historical editing", value = true))
+        mutableStateOf(Preference(id = 1, name = "historical editing", value = false))
     }
     if (init) {
         init = false
         val editable = preferencesList.find { it.name == "editable Goal" }
-        val historical= preferencesList.find { it.name == "historical editing" }
+        val historical = preferencesList.find { it.name == "historical editing" }
 
         if (editable != null) {
             editableGoal = editable
@@ -102,6 +105,7 @@ fun SettingsScreen(
                     historicalState.value = it
                     historicalRecording.value = it
                     settingsViewModel.setPreference(historicalRecording)
+                    homeViewModel.setDate(fetchCurrentDate())
                 })
         }
 //        Row(

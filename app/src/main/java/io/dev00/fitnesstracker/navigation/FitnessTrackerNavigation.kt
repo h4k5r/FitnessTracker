@@ -130,7 +130,8 @@ fun FitnessTrackerNavigation() {
                     ) {
                         SettingsScreen(
                             navController = navController,
-                            settingsViewModel = settingsViewModel
+                            settingsViewModel = settingsViewModel,
+                            homeViewModel = homeViewModel
                         )
                     }
                 }

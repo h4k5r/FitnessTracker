@@ -35,9 +35,17 @@ class EditGoalViewModel @Inject constructor(private val repository: FitnessTrack
             it.id == id
         })[0]
     }
-    fun insertGoal(goal: Goal) {
-        viewModelScope.launch {
-            repository.insertGoal(goal = goal)
+    fun insertGoal(goal: Goal,successCallback: () -> Unit = {}, failureCallback: () -> Unit = {}) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val found = repository.getGoalByName(goal.goalName)
+            if (found.isEmpty() || found[0].id == goal.id) {
+                repository.insertGoal(goal = goal)
+                viewModelScope.launch(Dispatchers.Main) {
+                    successCallback()
+                }
+            } else {
+                failureCallback()
+            }
         }
     }
 
