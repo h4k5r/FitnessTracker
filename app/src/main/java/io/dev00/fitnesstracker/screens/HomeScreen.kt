@@ -303,7 +303,7 @@ fun Progress(currentSteps: Int, activeGoal: Goal) {
         progressBarColor = Color.Green
     } else if (progress < 0.5f) {
         progressBarColor = Color.Red
-    } else if (progress > 0.5f && progress < 1f) {
+    } else if (progress >= 0.5f && progress < 1f) {
         progressBarColor = Color.Yellow
     } else {
         progressBarColor = Color.Transparent
